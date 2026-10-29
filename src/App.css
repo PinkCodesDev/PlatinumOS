@@ -201,6 +201,89 @@ h2 {
 
 /* Telefon i mniejsze okna */
 
+.library-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) auto repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 24px;
+  background: linear-gradient(145deg, #132b50, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color-scheme: dark;
+}
+
+.library-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.library-field label {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.library-field input,
+.library-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid #365f96;
+  border-radius: 6px;
+  background: #08172e;
+  color: #f5f7ff;
+  font: inherit;
+}
+
+.library-field input::placeholder {
+  color: var(--color-muted);
+}
+
+.library-field select {
+  cursor: pointer;
+}
+
+.library-field input:hover,
+.library-field select:hover {
+  border-color: var(--color-accent);
+}
+
+.library-field input:focus-visible,
+.library-field select:focus-visible {
+  outline: 2px solid #92d4ff;
+  outline-offset: 3px;
+  border-color: var(--color-accent);
+}
+
+.library-clear {
+  min-height: 48px;
+}
+
+.library-status {
+  margin-top: 16px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1200px) {
+  .library-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .library-controls {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+}
+
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;

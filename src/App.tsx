@@ -263,56 +263,64 @@ function App() {
         </section>
         <section id="library" aria-labelledby="library-title">
           <h2 id="library-title">My Library</h2>
-          <label htmlFor="game-search">Search games</label>
-          <input
-            id="game-search"
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Enter a game title"
-          />
-          <button
-            className="primary-button"
-            type="button"
-            onClick={handleClearSearch}
-            disabled={searchQuery === ''}
-          >
-            Clear search
-          </button>
-          <label htmlFor="game-sort">Sort games</label>
-          <select
-            id="game-sort"
-            value={sortOrder}
-            onChange={(event) => {
-              const value = event.target.value
-              if (value === 'asc' || value === 'desc') {
-                setSortOrder(value)
-              }
-            }}
-          >
-            <option value="asc">Title: A–Z</option>
-            <option value="desc">Title: Z–A</option>
-          </select>
-          <label htmlFor="game-progress">Filter by progress</label>
-          <select
-            id="game-progress"
-            value={progressFilter}
-            onChange={(event) => {
-              const value = event.target.value
-              if (
-                value === 'all' ||
-                value === 'in-progress' ||
-                value === 'completed'
-              ) {
-                setProgressFilter(value)
-              }
-            }}
-          >
-            <option value="all">All games</option>
-            <option value="in-progress">In progress</option>
-            <option value="completed">100% complete</option>
-          </select>
-          <p role="status">
+          <div className="library-controls">
+            <div className="library-field library-search">
+              <label htmlFor="game-search">Search games</label>
+              <input
+                id="game-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Enter a game title"
+              />
+            </div>
+            <button
+              className="primary-button library-clear"
+              type="button"
+              onClick={handleClearSearch}
+              disabled={searchQuery === ''}
+            >
+              Clear search
+            </button>
+            <div className="library-field">
+              <label htmlFor="game-sort">Sort games</label>
+              <select
+                id="game-sort"
+                value={sortOrder}
+                onChange={(event) => {
+                  const value = event.target.value
+                  if (value === 'asc' || value === 'desc') {
+                    setSortOrder(value)
+                  }
+                }}
+              >
+                <option value="asc">Title: A–Z</option>
+                <option value="desc">Title: Z–A</option>
+              </select>
+            </div>
+            <div className="library-field">
+              <label htmlFor="game-progress">Filter by progress</label>
+              <select
+                id="game-progress"
+                value={progressFilter}
+                onChange={(event) => {
+                  const value = event.target.value
+                  if (
+                    value === 'all' ||
+                    value === 'in-progress' ||
+                    value === 'completed'
+                  ) {
+                    setProgressFilter(value)
+                  }
+                }}
+              >
+                <option value="all">All games</option>
+                <option value="in-progress">In progress</option>
+                <option value="completed">100% complete</option>
+              </select>
+            </div>
+          </div>
+          <p className="library-status" role="status">
             {hasNoSearchResults
               ? 'No games match your search and filters.'
               : gamesStatus}
