@@ -167,6 +167,24 @@ h2 {
   box-shadow: 0 16px 48px #00000033;
 }
 
+.game-card-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #08172e;
+}
+
+.game-card-cover-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: var(--color-muted);
+  text-align: center;
+  font-size: 14px;
+}
+
 .game-card h3 {
   max-width: 650px;
   font-size: clamp(24px, 3vw, 36px);
