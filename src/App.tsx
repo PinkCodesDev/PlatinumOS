@@ -2,14 +2,50 @@ import { useEffect, useState } from 'react'
 
 import './App.css'
 
-import type { Game, GamesResponse } from './types'
+import type {
+  Game,
+  GamesResponse,
+  GamesLoadState,
+  SortOrder,
+  ProgressFilter,
+} from './types'
 
-import GameCard from './components/GameCard'
-import GameDetails from './components/GameDetails'
+import {
+  Link,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom'
+import DashboardPage from './pages/DashboardPage'
+import LibraryPage from './pages/LibraryPage'
+import GameDetailsPage from './pages/GameDetailsPage'
 
-type GamesLoadState = 'loading' | 'success' | 'error'
-type SortOrder = 'asc' | 'desc'
-type ProgressFilter = 'all' | 'in-progress' | 'completed'
+const ACTIVE_HUNT_KEY = 'platinumos.activeHunt.v1'
+type ActiveHunt = Pick<Game, 'id' | 'serviceName'>
+
+function readActiveHunt(): ActiveHunt | null {
+  try {
+    const saved: unknown = JSON.parse(
+      localStorage.getItem(ACTIVE_HUNT_KEY) ?? 'null',
+    )
+    if (
+      typeof saved === 'object' &&
+      saved !== null &&
+      'id' in saved &&
+      typeof saved.id === 'string' &&
+      saved.id.length > 0 &&
+      'serviceName' in saved &&
+      (saved.serviceName === 'trophy' || saved.serviceName === 'trophy2')
+    ) {
+      return { id: saved.id, serviceName: saved.serviceName }
+    }
+  } catch {
+    // Storage may be unavailable or contain invalid JSON.
+  }
+  return null
+}
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
@@ -19,7 +55,6 @@ function App() {
   const [gamesLoadState, setGamesLoadState] =
     useState<GamesLoadState>('loading')
   const [gamesStatus, setGamesStatus] = useState('Loading games…')
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -100,261 +135,127 @@ function App() {
     return () => controller.abort()
   }, [])
 
-  const [activeGame, setActiveGame] = useState({
-    title: 'Assassin’s Creed Unity',
-    platform: 'PS4',
-    status: 'In progress',
-    earnedTrophies: 3,
-    totalTrophies: 10,
-  })
-
-  const progress = Math.round(
-    (activeGame.earnedTrophies / activeGame.totalTrophies) * 100,
+  const [activeHunt, setActiveHunt] = useState<ActiveHunt | null>(
+    readActiveHunt,
+  )
+  const [huntMessage, setHuntMessage] = useState('')
+  const activeGame = games.find(
+    (game) =>
+      game.id === activeHunt?.id && game.serviceName === activeHunt.serviceName,
   )
 
-  const hasCompleteTrophyData =
-    gamesLoadState === 'success' &&
-    games.every((game) => game.earnedTrophies !== null)
-
-  const totalTrophies = games.reduce((total, game) => {
-    if (game.earnedTrophies === null) {
-      return total
+  function updateActiveHunt(game: Game | null) {
+    const nextHunt = game
+      ? { id: game.id, serviceName: game.serviceName }
+      : null
+    setActiveHunt(nextHunt)
+    try {
+      if (nextHunt)
+        localStorage.setItem(ACTIVE_HUNT_KEY, JSON.stringify(nextHunt))
+      else localStorage.removeItem(ACTIVE_HUNT_KEY)
+      setHuntMessage(
+        game ? 'Active hunt saved on this browser.' : 'Active hunt cleared.',
+      )
+    } catch {
+      setHuntMessage(
+        'Selection changed for this session, but browser storage is unavailable. It may not be restored correctly after a reload.',
+      )
     }
-    return (
-      total +
-      game.earnedTrophies.bronze +
-      game.earnedTrophies.silver +
-      game.earnedTrophies.gold +
-      game.earnedTrophies.platinum
-    )
-  }, 0)
-
-  const totalPlatinums = games.reduce((total, game) => {
-    if (game.earnedTrophies === null) {
-      return total
-    }
-
-    return total + game.earnedTrophies.platinum
-  }, 0)
-
-  function handleEarnTrophy() {
-    setActiveGame((previousGame) => ({
-      ...previousGame,
-      earnedTrophies: Math.min(
-        previousGame.earnedTrophies + 1,
-        previousGame.totalTrophies,
-      ),
-    }))
   }
 
-  function handleClearSearch() {
-    setSearchQuery('')
-  }
+  const location = useLocation()
+  const title =
+    location.pathname === '/'
+      ? 'Dashboard'
+      : location.pathname === '/games'
+        ? 'My Library'
+        : location.pathname.startsWith('/games/')
+          ? 'Game details'
+          : 'Page not found'
+  useEffect(() => {
+    document.title = title + ' | PlatinumOS'
+    window.scrollTo(0, 0)
+  }, [location.pathname, title])
 
-  const filteredGames = games.filter((game) => {
-    const matchesSearch = game.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-
-    const matchesProgress =
-      progressFilter === 'all' ||
-      (progressFilter === 'in-progress' &&
-        game.progress !== null &&
-        game.progress > 0 &&
-        game.progress < 100) ||
-      (progressFilter === 'completed' && game.progress === 100)
-
-    return matchesSearch && matchesProgress
-  })
-
-  const sortedGames = [...filteredGames].sort((a, b) => {
-    const comparison = a.title.localeCompare(b.title)
-    return sortOrder === 'asc' ? comparison : -comparison
-  })
-
-  const hasNoSearchResults =
-    gamesLoadState === 'success' &&
-    games.length > 0 &&
-    filteredGames.length === 0
+  if (location.pathname === '/' && location.hash === '#library')
+    return <Navigate to="/games" replace />
 
   return (
     <div className="dashboard">
       <aside className="sidebar">
-        <a className="brand" href="/">
+        <Link className="brand" to="/">
           PlatinumOS
-        </a>
-
+        </Link>
         <nav aria-label="Main navigation">
-          <a href="#overview">Overview</a>
-          <a href="#active-hunt">Active hunt</a>
-          <a href="#library">My Library</a>
+          <NavLink to="/" end>
+            Dashboard
+          </NavLink>
+          <NavLink to="/games">My Library</NavLink>
         </nav>
-
         <p className="sidebar-note">Your next platinum starts here.</p>
       </aside>
-
       <main className="main-content">
         <header className="dashboard-header">
           <p className="eyebrow">YOUR HUNTING HQ</p>
-          <h1>Dashboard</h1>
+          <h1>{title}</h1>
           <p>Plan your hunts. Track your trophies. Earn your platinum.</p>
           <p role="status">{serverStatus}</p>
         </header>
-
-        <section id="overview" aria-labelledby="overview-title">
-          <h2 id="overview-title">Overview</h2>
-          <p>Statistics from your PSN library.</p>
-
-          <div className="stats-grid">
-            <article className="stat-card">
-              <h3>Games in library</h3>
-              <p className="stat-value">
-                {gamesLoadState === 'success' ? games.length : '—'}
-              </p>
-            </article>
-
-            <article className="stat-card">
-              <h3>Trophies earned</h3>
-              <p className="stat-value">
-                {hasCompleteTrophyData ? totalTrophies : '—'}
-              </p>
-            </article>
-
-            <article className="stat-card">
-              <h3>Platinums earned</h3>
-              <p className="stat-value">
-                {hasCompleteTrophyData ? totalPlatinums : '—'}
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <section id="active-hunt" aria-labelledby="hunt-title">
-          <h2 id="hunt-title">Active hunt</h2>
-
-          <article className="game-card">
-            <p className="eyebrow">
-              {activeGame.platform} · {activeGame.status}
-            </p>
-
-            <h3>{activeGame.title}</h3>
-
-            <p>
-              {activeGame.earnedTrophies} / {activeGame.totalTrophies} trophies
-              {' · '}
-              {progress}% complete
-            </p>
-
-            <progress
-              className="trophy-progress"
-              value={activeGame.earnedTrophies}
-              max={activeGame.totalTrophies}
-              aria-label={`Trophy progress for ${activeGame.title}`}
-            />
-
-            <p>Demo data</p>
-            <button
-              className="primary-button"
-              type="button"
-              onClick={handleEarnTrophy}
-              disabled={activeGame.earnedTrophies >= activeGame.totalTrophies}
-            >
-              Add demo trophy
-            </button>
-          </article>
-        </section>
-        <section id="library" aria-labelledby="library-title">
-          <h2 id="library-title">My Library</h2>
-          <div className="library-controls">
-            <div className="library-field library-search">
-              <label htmlFor="game-search">Search games</label>
-              <input
-                id="game-search"
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Enter a game title"
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <DashboardPage
+                games={games}
+                gamesLoadState={gamesLoadState}
+                activeGame={activeGame}
+                hasSavedHunt={activeHunt !== null}
+                huntMessage={huntMessage}
+                updateActiveHunt={updateActiveHunt}
               />
-            </div>
-            <button
-              className="primary-button library-clear"
-              type="button"
-              onClick={handleClearSearch}
-              disabled={searchQuery === ''}
-            >
-              Clear search
-            </button>
-            <div className="library-field">
-              <label htmlFor="game-sort">Sort games</label>
-              <select
-                id="game-sort"
-                value={sortOrder}
-                onChange={(event) => {
-                  const value = event.target.value
-                  if (value === 'asc' || value === 'desc') {
-                    setSortOrder(value)
-                  }
-                }}
-              >
-                <option value="asc">Title: A–Z</option>
-                <option value="desc">Title: Z–A</option>
-              </select>
-            </div>
-            <div className="library-field">
-              <label htmlFor="game-progress">Filter by progress</label>
-              <select
-                id="game-progress"
-                value={progressFilter}
-                onChange={(event) => {
-                  const value = event.target.value
-                  if (
-                    value === 'all' ||
-                    value === 'in-progress' ||
-                    value === 'completed'
-                  ) {
-                    setProgressFilter(value)
-                  }
-                }}
-              >
-                <option value="all">All games</option>
-                <option value="in-progress">In progress</option>
-                <option value="completed">100% complete</option>
-              </select>
-            </div>
-          </div>
-          <p className="library-status" role="status">
-            {hasNoSearchResults
-              ? 'No games match your search and filters.'
-              : gamesStatus}
-          </p>
-
-          {gamesLoadState === 'success' && (
-            <p>
-              Showing {filteredGames.length} of {games.length} games
-            </p>
-          )}
-
-          {selectedGame !== null && (
-            <GameDetails
-              key={`${selectedGame.serviceName}:${selectedGame.id}`}
-              game={selectedGame}
-              onClose={() => setSelectedGame(null)}
-            />
-          )}
-
-          <div className="stats-grid">
-            {sortedGames.map((game) => (
-              <GameCard
-                key={`${game.serviceName}:${game.id}`}
-                game={game}
-                onSelect={setSelectedGame}
+            }
+          />
+          <Route
+            path="/games"
+            element={
+              <LibraryPage
+                games={games}
+                gamesLoadState={gamesLoadState}
+                gamesStatus={gamesStatus}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                progressFilter={progressFilter}
+                setProgressFilter={setProgressFilter}
               />
-            ))}
-          </div>
-        </section>
+            }
+          />
+          <Route
+            path="/games/:serviceName/:gameId"
+            element={
+              <GameDetailsPage
+                games={games}
+                gamesLoadState={gamesLoadState}
+                activeHunt={activeHunt}
+                huntMessage={huntMessage}
+                onSetActiveHunt={updateActiveHunt}
+              />
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <section>
+                <h2>Page not found</h2>
+                <p>This address does not exist.</p>
+                <Link to="/games">Go to My Library</Link>
+              </section>
+            }
+          />
+        </Routes>
       </main>
     </div>
   )
 }
-
 export default App

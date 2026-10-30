@@ -1,14 +1,47 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import type { Game, Trophy, TrophiesResponse } from '../types'
 
-type Props = { game: Game; onClose: () => void }
+type Props = {
+  game: Game
+  onSetActiveHunt: (game: Game) => void
+  isActiveHunt: boolean
+}
 type TrophyFilter = 'all' | 'earned' | 'missing'
 type LoadState =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'success'; trophies: Trophy[] }
 
-export default function GameDetails({ game, onClose }: Props) {
+function TrophyIcon({ iconUrl }: { iconUrl: string | null }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+
+  if (!iconUrl || iconUrl === failedUrl) {
+    return (
+      <span className="trophy-icon trophy-icon-placeholder" aria-hidden="true">
+        🏆
+      </span>
+    )
+  }
+
+  return (
+    <img
+      className="trophy-icon"
+      src={iconUrl}
+      alt=""
+      width={64}
+      height={64}
+      loading="lazy"
+      onError={() => setFailedUrl(iconUrl)}
+    />
+  )
+}
+
+export default function GameDetails({
+  game,
+  onSetActiveHunt,
+  isActiveHunt,
+}: Props) {
   const [result, setResult] = useState<LoadState>({ status: 'loading' })
   const [filter, setFilter] = useState<TrophyFilter>('all')
   const [attempt, setAttempt] = useState(0)
@@ -74,9 +107,9 @@ export default function GameDetails({ game, onClose }: Props) {
               : `${game.progress}% complete`}
           </p>
         </div>
-        <button className="primary-button" type="button" onClick={onClose}>
-          Close details
-        </button>
+        <Link className="primary-button" to="/games">
+          Back to library
+        </Link>
       </div>
       {game.progress !== null && (
         <progress
@@ -86,6 +119,14 @@ export default function GameDetails({ game, onClose }: Props) {
           aria-label={`Trophy progress for ${game.title}`}
         />
       )}
+      <button
+        className="primary-button"
+        type="button"
+        disabled={isActiveHunt}
+        onClick={() => onSetActiveHunt(game)}
+      >
+        {isActiveHunt ? 'Current active hunt' : 'Set as active hunt'}
+      </button>
       <h3>Trophy Tracker</h3>
       <p className="details-note">
         All trophy groups, including DLC. Descriptions may contain spoilers.
@@ -148,7 +189,10 @@ export default function GameDetails({ game, onClose }: Props) {
               {visibleTrophies.map((trophy) => (
                 <li key={trophy.id}>
                   <div className="trophy-row-heading">
-                    <h4>{trophy.name}</h4>
+                    <div className="trophy-title">
+                      <TrophyIcon iconUrl={trophy.iconUrl} />
+                      <h4>{trophy.name}</h4>
+                    </div>
                     <span
                       className={`trophy-grade trophy-grade-${trophy.type}`}
                     >

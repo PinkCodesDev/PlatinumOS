@@ -1,12 +1,13 @@
+import { Link } from 'react-router-dom'
+import { gamePath } from '../routes'
 import { useState } from 'react'
 import type { Game } from '../types'
 
 type GameCardProps = {
   game: Game
-  onSelect: (game: Game) => void
 }
 
-function GameCard({ game, onSelect }: GameCardProps) {
+function GameCard({ game }: GameCardProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
   const showCover = Boolean(game.iconUrl) && game.iconUrl !== failedImageUrl
 
@@ -40,13 +41,9 @@ function GameCard({ game, onSelect }: GameCardProps) {
           aria-label={`Trophy progress for ${game.title}`}
         />
       )}
-      <button
-        className="primary-button"
-        type="button"
-        onClick={() => onSelect(game)}
-      >
+      <Link className="primary-button" to={gamePath(game)}>
         View details
-      </button>
+      </Link>
     </article>
   )
 }

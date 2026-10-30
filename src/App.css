@@ -452,3 +452,33 @@ h2 {
     padding: 18px;
   }
 }
+
+.trophy-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.trophy-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #132b50;
+}
+
+.trophy-icon-placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+
+.sidebar nav a.active {
+  color: #fff;
+  background: #123568;
+  border-color: #467ac3;
+}

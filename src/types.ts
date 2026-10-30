@@ -41,3 +41,7 @@ export type TrophiesResponse = {
   serviceName: Game['serviceName']
   trophies: Trophy[]
 }
+
+export type GamesLoadState = 'loading' | 'success' | 'error'
+export type SortOrder = 'asc' | 'desc'
+export type ProgressFilter = 'all' | 'in-progress' | 'completed'
