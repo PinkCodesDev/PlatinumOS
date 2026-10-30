@@ -5,6 +5,7 @@ import './App.css'
 import type { Game, GamesResponse } from './types'
 
 import GameCard from './components/GameCard'
+import GameDetails from './components/GameDetails'
 
 type GamesLoadState = 'loading' | 'success' | 'error'
 type SortOrder = 'asc' | 'desc'
@@ -18,6 +19,7 @@ function App() {
   const [gamesLoadState, setGamesLoadState] =
     useState<GamesLoadState>('loading')
   const [gamesStatus, setGamesStatus] = useState('Loading games…')
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -332,9 +334,21 @@ function App() {
             </p>
           )}
 
+          {selectedGame !== null && (
+            <GameDetails
+              key={`${selectedGame.serviceName}:${selectedGame.id}`}
+              game={selectedGame}
+              onClose={() => setSelectedGame(null)}
+            />
+          )}
+
           <div className="stats-grid">
             {sortedGames.map((game) => (
-              <GameCard key={`${game.serviceName}:${game.id}`} game={game} />
+              <GameCard
+                key={`${game.serviceName}:${game.id}`}
+                game={game}
+                onSelect={setSelectedGame}
+              />
             ))}
           </div>
         </section>

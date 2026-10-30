@@ -3,9 +3,10 @@ import type { Game } from '../types'
 
 type GameCardProps = {
   game: Game
+  onSelect: (game: Game) => void
 }
 
-function GameCard({ game }: GameCardProps) {
+function GameCard({ game, onSelect }: GameCardProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
   const showCover = Boolean(game.iconUrl) && game.iconUrl !== failedImageUrl
 
@@ -39,6 +40,13 @@ function GameCard({ game }: GameCardProps) {
           aria-label={`Trophy progress for ${game.title}`}
         />
       )}
+      <button
+        className="primary-button"
+        type="button"
+        onClick={() => onSelect(game)}
+      >
+        View details
+      </button>
     </article>
   )
 }

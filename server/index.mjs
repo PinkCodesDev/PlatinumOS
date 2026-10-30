@@ -4,9 +4,11 @@ import { config, isPsnConfigured } from './config.mjs'
 import { createPsnAuth } from './psn-auth.mjs'
 import { createPsnService } from './psn-service.mjs'
 import { PsnError } from './psn-errors.mjs'
+import { createTrophyService } from './trophy-service.mjs'
 
 const auth = createPsnAuth({ npsso: config.psnNpsso })
 const psn = createPsnService({ auth })
+const trophyService = createTrophyService({ auth })
 
 const server = createServer(async (request, response) => {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -18,9 +20,19 @@ const server = createServer(async (request, response) => {
     return
   }
 
-  if (request.method === 'GET' && request.url === '/api/psn/games') {
+  const url = new URL(request.url, 'http://localhost')
+  if (
+    request.method === 'GET' &&
+    (url.pathname === '/api/psn/games' || url.pathname === '/api/psn/trophies')
+  ) {
     try {
-      const data = await psn.getGames()
+      const data =
+        url.pathname === '/api/psn/games'
+          ? await psn.getGames()
+          : await trophyService.getTrophies(
+              url.searchParams.get('gameId') ?? '',
+              url.searchParams.get('serviceName') ?? '',
+            )
       response.writeHead(200)
       response.end(JSON.stringify(data))
     } catch (error) {

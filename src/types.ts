@@ -5,7 +5,7 @@ export type Trophy = {
   iconUrl: string | null
   type: 'bronze' | 'silver' | 'gold' | 'platinum'
   groupId: string
-  earned: boolean
+  earned: boolean | null
   earnedRate: number | null
 }
 
@@ -32,4 +32,12 @@ export type GamesResponse = {
   source: 'PSN'
   fetchedAt: string
   games: Game[]
+}
+
+export type TrophiesResponse = {
+  source: 'PSN'
+  fetchedAt: string
+  gameId: string
+  serviceName: Game['serviceName']
+  trophies: Trophy[]
 }
