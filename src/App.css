@@ -596,3 +596,13 @@ h2 {
 .planner-step {
   flex-basis: 220px;
 }
+
+.trophy-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.trophy-filters > button {
+  min-height: 48px;
+}

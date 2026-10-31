@@ -48,6 +48,8 @@ export default function GameDetails({
 }: Props) {
   const [result, setResult] = useState<LoadState>({ status: 'loading' })
   const [filter, setFilter] = useState<TrophyFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<Trophy['type'] | 'all'>('all')
+  const [groupFilter, setGroupFilter] = useState('all')
   const [attempt, setAttempt] = useState(0)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -85,12 +87,23 @@ export default function GameDetails({
   }, [game.id, game.serviceName, attempt])
 
   const trophies = result.status === 'success' ? result.trophies : []
-  const visibleTrophies = trophies.filter(
-    (trophy) =>
+  const groupIds = [...new Set(trophies.map((trophy) => trophy.groupId))].sort(
+    (a, b) =>
+      a === 'default'
+        ? -1
+        : b === 'default'
+          ? 1
+          : a.localeCompare(b, undefined, { numeric: true }),
+  )
+  const visibleTrophies = trophies.filter((trophy) => {
+    const matchesStatus =
       filter === 'all' ||
       (filter === 'earned' && trophy.earned === true) ||
-      (filter === 'missing' && trophy.earned === false),
-  )
+      (filter === 'missing' && trophy.earned === false)
+    const matchesType = typeFilter === 'all' || trophy.type === typeFilter
+    const matchesGroup = groupFilter === 'all' || trophy.groupId === groupFilter
+    return matchesStatus && matchesType && matchesGroup
+  })
   const earnedCount = trophies.filter((trophy) => trophy.earned === true).length
   const unknownCount = trophies.filter(
     (trophy) => trophy.earned === null,
@@ -161,25 +174,82 @@ export default function GameDetails({
             {earnedCount} / {trophies.length} trophies earned
             {unknownCount > 0 ? ` · ${unknownCount} with unknown status` : ''}
           </p>
-          <div className="library-field trophy-filter">
-            <label htmlFor="trophy-filter">Show trophies</label>
-            <select
-              id="trophy-filter"
-              value={filter}
-              onChange={(event) => {
-                const value = event.target.value
-                if (
-                  value === 'all' ||
-                  value === 'earned' ||
-                  value === 'missing'
-                )
-                  setFilter(value)
+          <div className="trophy-filters">
+            <div className="library-field">
+              <label htmlFor="trophy-filter">Show trophies</label>
+              <select
+                id="trophy-filter"
+                value={filter}
+                onChange={(event) => {
+                  const value = event.target.value
+                  if (
+                    value === 'all' ||
+                    value === 'earned' ||
+                    value === 'missing'
+                  )
+                    setFilter(value)
+                }}
+              >
+                <option value="all">All trophies</option>
+                <option value="earned">Earned</option>
+                <option value="missing">Not earned</option>
+              </select>
+            </div>
+            <div className="library-field">
+              <label htmlFor="trophy-type">Trophy type</label>
+              <select
+                id="trophy-type"
+                value={typeFilter}
+                onChange={(event) => {
+                  const value = event.target.value
+                  if (
+                    value === 'all' ||
+                    value === 'bronze' ||
+                    value === 'silver' ||
+                    value === 'gold' ||
+                    value === 'platinum'
+                  )
+                    setTypeFilter(value)
+                }}
+              >
+                <option value="all">All types</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+              </select>
+            </div>
+            <div className="library-field">
+              <label htmlFor="trophy-group">Trophy group / DLC</label>
+              <select
+                id="trophy-group"
+                value={groupFilter}
+                onChange={(event) => setGroupFilter(event.target.value)}
+              >
+                <option value="all">All groups</option>
+                {groupIds.map((id) => (
+                  <option key={id} value={id}>
+                    {id === 'default' ? 'Base game' : `DLC group ${id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              className="primary-button"
+              type="button"
+              disabled={
+                filter === 'all' &&
+                typeFilter === 'all' &&
+                groupFilter === 'all'
+              }
+              onClick={() => {
+                setFilter('all')
+                setTypeFilter('all')
+                setGroupFilter('all')
               }}
             >
-              <option value="all">All trophies</option>
-              <option value="earned">Earned</option>
-              <option value="missing">Not earned</option>
-            </select>
+              Reset filters
+            </button>
           </div>
           <p role="status">
             Showing {visibleTrophies.length} of {trophies.length} trophies
@@ -187,7 +257,7 @@ export default function GameDetails({
           {trophies.length === 0 ? (
             <p>No trophies available for this game.</p>
           ) : visibleTrophies.length === 0 ? (
-            <p>No trophies match this filter.</p>
+            <p>No trophies match these filters.</p>
           ) : (
             <ul className="trophy-list">
               {visibleTrophies.map((trophy) => (
