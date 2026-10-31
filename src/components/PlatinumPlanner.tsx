@@ -13,6 +13,8 @@ export default function PlatinumPlanner({
 }) {
   const { steps, updateSteps, savePlan, message, storageError } = plan
   const [title, setTitle] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [draftTitle, setDraftTitle] = useState('')
   const completedCount = steps.filter((step) => step.completed).length
 
   function addStep(event: FormEvent<HTMLFormElement>) {
@@ -24,6 +26,30 @@ export default function PlatinumPlanner({
       { id: crypto.randomUUID(), title: trimmedTitle, completed: false },
     ])
     setTitle('')
+  }
+
+  function saveEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const nextTitle = draftTitle.trim()
+    if (!nextTitle || nextTitle.length > 200) return
+    updateSteps(
+      steps.map((step) =>
+        step.id === editingId ? { ...step, title: nextTitle } : step,
+      ),
+    )
+    setEditingId(null)
+  }
+
+  function moveStep(id: string, direction: -1 | 1) {
+    const index = steps.findIndex((step) => step.id === id)
+    const targetIndex = index + direction
+    if (index < 0 || targetIndex < 0 || targetIndex >= steps.length) return
+    const nextSteps = [...steps]
+    ;[nextSteps[index], nextSteps[targetIndex]] = [
+      nextSteps[targetIndex],
+      nextSteps[index],
+    ]
+    updateSteps(nextSteps)
   }
 
   return (
@@ -70,45 +96,118 @@ export default function PlatinumPlanner({
         </p>
       ) : (
         <ul className="planner-list">
-          {steps.map((step) => (
+          {steps.map((step, index) => (
             <li key={step.id}>
-              <label
-                className={
-                  step.completed ? 'planner-step is-completed' : 'planner-step'
-                }
-              >
-                <input
-                  type="checkbox"
-                  checked={step.completed}
-                  onChange={() =>
-                    updateSteps(
-                      steps.map((item) =>
-                        item.id === step.id
-                          ? { ...item, completed: !item.completed }
-                          : item,
-                      ),
-                    )
+              {editingId === step.id ? (
+                <form
+                  className="planner-edit-form"
+                  onSubmit={saveEdit}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') setEditingId(null)
+                  }}
+                >
+                  <div className="library-field">
+                    <label htmlFor={`edit-step-${step.id}`}>Edit step</label>
+                    <input
+                      id={`edit-step-${step.id}`}
+                      value={draftTitle}
+                      onChange={(event) => setDraftTitle(event.target.value)}
+                      maxLength={200}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="planner-actions">
+                    <button
+                      className="primary-button"
+                      type="submit"
+                      disabled={!draftTitle.trim()}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <label
+                  className={
+                    step.completed
+                      ? 'planner-step is-completed'
+                      : 'planner-step'
                   }
-                />
-                <span>
-                  {step.title}
-                  {step.trophyId !== undefined && (
-                    <small className="planner-source">
-                      Linked to a PSN trophy
-                    </small>
-                  )}
-                </span>
-              </label>
-              <button
-                className="primary-button"
-                type="button"
-                aria-label={`Delete step: ${step.title}`}
-                onClick={() =>
-                  updateSteps(steps.filter((item) => item.id !== step.id))
-                }
-              >
-                Delete
-              </button>
+                >
+                  <input
+                    type="checkbox"
+                    checked={step.completed}
+                    onChange={() =>
+                      updateSteps(
+                        steps.map((item) =>
+                          item.id === step.id
+                            ? { ...item, completed: !item.completed }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                  <span>
+                    {step.title}
+                    {step.trophyId !== undefined && (
+                      <small className="planner-source">
+                        Linked to a PSN trophy
+                      </small>
+                    )}
+                  </span>
+                </label>
+              )}
+              <div className="planner-actions">
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={editingId !== null}
+                  aria-label={`Edit step: ${step.title}`}
+                  onClick={() => {
+                    setEditingId(step.id)
+                    setDraftTitle(step.title)
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={index === 0 || editingId !== null}
+                  aria-label={`Move up: ${step.title}`}
+                  onClick={() => moveStep(step.id, -1)}
+                >
+                  ↑ Up
+                </button>
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={index === steps.length - 1 || editingId !== null}
+                  aria-label={`Move down: ${step.title}`}
+                  onClick={() => moveStep(step.id, 1)}
+                >
+                  ↓ Down
+                </button>
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={editingId !== null}
+                  aria-label={`Delete step: ${step.title}`}
+                  onClick={() =>
+                    updateSteps(steps.filter((item) => item.id !== step.id))
+                  }
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
