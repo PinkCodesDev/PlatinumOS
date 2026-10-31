@@ -1,3 +1,4 @@
+import { usePlatinumPlan } from '../hooks/usePlatinumPlan'
 import PlatinumPlanner from '../components/PlatinumPlanner'
 import { Link, useParams } from 'react-router-dom'
 import type { Game, GamesLoadState } from '../types'
@@ -55,12 +56,56 @@ export default function GameDetailsPage({
     )
 
   return (
+    <GameWorkspace
+      key={`${game.serviceName}:${game.id}`}
+      game={game}
+      activeHunt={activeHunt}
+      huntMessage={huntMessage}
+      onSetActiveHunt={onSetActiveHunt}
+    />
+  )
+}
+
+function GameWorkspace({
+  game,
+  activeHunt,
+  huntMessage,
+  onSetActiveHunt,
+}: Pick<Props, 'activeHunt' | 'huntMessage' | 'onSetActiveHunt'> & {
+  game: Game
+}) {
+  const plan = usePlatinumPlan(game)
+  return (
     <>
-      <PlatinumPlanner key={`${game.serviceName}:${game.id}`} game={game} />
+      {game.serviceName === 'trophy' && game.id === 'NPWR06600_00' && (
+        <section className="game-guide" aria-labelledby="guide-title">
+          <h2 id="guide-title">Trophy guide</h2>
+          <p>
+            Plan your Assassin's Creed Unity platinum with this community guide
+            on PSNProfiles.
+          </p>
+          <a
+            className="primary-button"
+            href="https://psnprofiles.com/guide/3324-assassins-creed-unity-trophy-guide"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open guide on PSNProfiles (new tab)
+          </a>
+          <p className="details-note">
+            External community guide. The full guide is hosted on PSNProfiles.
+          </p>
+        </section>
+      )}
+      <PlatinumPlanner game={game} plan={plan} />
       <GameDetails
         key={`${game.serviceName}:${game.id}`}
         game={game}
         onSetActiveHunt={onSetActiveHunt}
+        onAddToPlan={plan.addTrophy}
+        plannedTrophyIds={plan.steps.flatMap((step) =>
+          step.trophyId === undefined ? [] : [step.trophyId],
+        )}
         isActiveHunt={
           activeHunt?.id === game.id &&
           activeHunt.serviceName === game.serviceName

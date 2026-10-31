@@ -2,70 +2,18 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Game } from '../types'
 
-type PlanStep = { id: string; title: string; completed: boolean }
-type SavedPlan = { steps: PlanStep[]; warning: string }
+import type { PlatinumPlan } from '../hooks/usePlatinumPlan'
 
-function readPlan(key: string): SavedPlan {
-  try {
-    const raw = localStorage.getItem(key)
-    if (raw === null) return { steps: [], warning: '' }
-    const data: unknown = JSON.parse(raw)
-    if (
-      !Array.isArray(data) ||
-      !data.every(
-        (step) =>
-          typeof step === 'object' &&
-          step !== null &&
-          typeof step.id === 'string' &&
-          step.id.length > 0 &&
-          typeof step.title === 'string' &&
-          step.title.trim().length > 0 &&
-          step.title.length <= 200 &&
-          typeof step.completed === 'boolean',
-      ) ||
-      new Set(data.map((step) => step.id)).size !== data.length
-    ) {
-      throw new Error('Invalid plan')
-    }
-    return {
-      steps: data.map(({ id, title, completed }) => ({ id, title, completed })),
-      warning: '',
-    }
-  } catch {
-    return {
-      steps: [],
-      warning:
-        'Could not read the saved plan. Changes will replace the previous plan if saving is available.',
-    }
-  }
-}
-
-export default function PlatinumPlanner({ game }: { game: Game }) {
-  const storageKey = `platinumos.planner.v1:${game.serviceName}:${game.id}`
-  const [initialPlan] = useState(() => readPlan(storageKey))
-  const [steps, setSteps] = useState<PlanStep[]>(initialPlan.steps)
+export default function PlatinumPlanner({
+  game,
+  plan,
+}: {
+  game: Game
+  plan: PlatinumPlan
+}) {
+  const { steps, updateSteps, savePlan, message, storageError } = plan
   const [title, setTitle] = useState('')
-  const [message, setMessage] = useState('')
-  const [storageError, setStorageError] = useState(initialPlan.warning)
   const completedCount = steps.filter((step) => step.completed).length
-
-  function savePlan(nextSteps: PlanStep[]) {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(nextSteps))
-      setStorageError('')
-      setMessage('Plan saved in this browser.')
-    } catch {
-      setStorageError(
-        'Changes are visible, but could not be saved. Keep this page open and try saving again.',
-      )
-      setMessage('')
-    }
-  }
-
-  function updateSteps(nextSteps: PlanStep[]) {
-    setSteps(nextSteps)
-    savePlan(nextSteps)
-  }
 
   function addStep(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -142,7 +90,14 @@ export default function PlatinumPlanner({ game }: { game: Game }) {
                     )
                   }
                 />
-                <span>{step.title}</span>
+                <span>
+                  {step.title}
+                  {step.trophyId !== undefined && (
+                    <small className="planner-source">
+                      Linked to a PSN trophy
+                    </small>
+                  )}
+                </span>
               </label>
               <button
                 className="primary-button"

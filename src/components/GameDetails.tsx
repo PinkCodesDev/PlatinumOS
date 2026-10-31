@@ -6,6 +6,8 @@ type Props = {
   game: Game
   onSetActiveHunt: (game: Game) => void
   isActiveHunt: boolean
+  onAddToPlan: (trophy: Trophy) => void
+  plannedTrophyIds: string[]
 }
 type TrophyFilter = 'all' | 'earned' | 'missing'
 type LoadState =
@@ -41,6 +43,8 @@ export default function GameDetails({
   game,
   onSetActiveHunt,
   isActiveHunt,
+  onAddToPlan,
+  plannedTrophyIds,
 }: Props) {
   const [result, setResult] = useState<LoadState>({ status: 'loading' })
   const [filter, setFilter] = useState<TrophyFilter>('all')
@@ -216,6 +220,17 @@ export default function GameDetails({
                       ? 'Player completion rate unavailable'
                       : `${trophy.earnedRate}% of players earned this trophy`}
                   </p>
+                  <button
+                    className="primary-button"
+                    type="button"
+                    disabled={plannedTrophyIds.includes(trophy.id)}
+                    onClick={() => onAddToPlan(trophy)}
+                    aria-label={`${plannedTrophyIds.includes(trophy.id) ? 'Already in plan' : 'Add to plan'}: ${trophy.name}`}
+                  >
+                    {plannedTrophyIds.includes(trophy.id)
+                      ? 'Already in plan'
+                      : 'Add to plan'}
+                  </button>
                 </li>
               ))}
             </ul>
