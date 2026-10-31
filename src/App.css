@@ -1412,3 +1412,141 @@ h2 {
     align-items: center;
   }
 }
+
+.game-summary {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #132b50, #08172e);
+}
+.game-summary > button {
+  justify-self: start;
+}
+.game-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+}
+.game-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  min-height: 44px;
+  font: inherit;
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.game-tabs button[aria-selected='true'] {
+  color: #fff;
+  background: #153965;
+  border-color: #5689bd;
+}
+.game-tabs button:hover {
+  color: white;
+  background: #123052;
+}
+.game-tabs button:focus-visible,
+[role='tabpanel']:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.tab-count {
+  font-size: 11px;
+  border-radius: 20px;
+  padding: 2px 7px;
+  background: #ffffff15;
+}
+@media (max-width: 600px) {
+  .game-tabs {
+    gap: 4px;
+  }
+  .game-tabs button {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+  .game-summary {
+    padding: 18px;
+  }
+}
+
+.recently-played {
+  display: grid;
+  gap: 20px;
+}
+.recent-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.recent-heading h2 {
+  margin-bottom: 4px;
+}
+.recent-heading > a,
+.recent-card a {
+  color: var(--color-accent);
+  font-size: 13px;
+}
+.recent-heading > a:hover,
+.recent-card a:hover {
+  text-decoration: underline;
+}
+.recent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.recent-card {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #0b192e;
+  overflow: hidden;
+}
+.recent-card > img,
+.recent-cover-fallback {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+  background: #061021;
+}
+.recent-cover-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.recent-card > div:not(.recent-cover-fallback) {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+.recent-card h3 {
+  font-size: 16px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.recent-card .details-note {
+  font-size: 12px;
+}
+@media (max-width: 1100px) {
+  .recent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .recent-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

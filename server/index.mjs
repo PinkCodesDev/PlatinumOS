@@ -1,3 +1,4 @@
+import { createRecentService } from './recent-service.mjs'
 import { createServer } from 'node:http'
 // Configuration is loaded at startup; restart the server after editing .env.
 import { config, isPsnConfigured } from './config.mjs'
@@ -8,6 +9,7 @@ import { createTrophyService } from './trophy-service.mjs'
 
 const auth = createPsnAuth({ npsso: config.psnNpsso })
 const psn = createPsnService({ auth })
+const recent = createRecentService({ auth })
 const trophyService = createTrophyService({ auth })
 
 const server = createServer(async (request, response) => {
@@ -23,16 +25,20 @@ const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://localhost')
   if (
     request.method === 'GET' &&
-    (url.pathname === '/api/psn/games' || url.pathname === '/api/psn/trophies')
+    ['/api/psn/games', '/api/psn/trophies', '/api/psn/recent'].includes(
+      url.pathname,
+    )
   ) {
     try {
       const data =
-        url.pathname === '/api/psn/games'
-          ? await psn.getGames()
-          : await trophyService.getTrophies(
-              url.searchParams.get('gameId') ?? '',
-              url.searchParams.get('serviceName') ?? '',
-            )
+        url.pathname === '/api/psn/recent'
+          ? await recent.getRecent()
+          : url.pathname === '/api/psn/games'
+            ? await psn.getGames()
+            : await trophyService.getTrophies(
+                url.searchParams.get('gameId') ?? '',
+                url.searchParams.get('serviceName') ?? '',
+              )
       response.writeHead(200)
       response.end(JSON.stringify(data))
     } catch (error) {

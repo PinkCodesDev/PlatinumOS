@@ -1,11 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Game, Trophy, TrophiesResponse } from '../types'
 
 type Props = {
   game: Game
-  onSetActiveHunt: (game: Game) => void
-  isActiveHunt: boolean
   onAddToPlan: (trophy: Trophy) => void
   plannedTrophyIds: string[]
 }
@@ -41,8 +38,6 @@ function TrophyIcon({ iconUrl }: { iconUrl: string | null }) {
 
 export default function GameDetails({
   game,
-  onSetActiveHunt,
-  isActiveHunt,
   onAddToPlan,
   plannedTrophyIds,
 }: Props) {
@@ -51,24 +46,6 @@ export default function GameDetails({
   const [typeFilter, setTypeFilter] = useState<Trophy['type'] | 'all'>('all')
   const [groupFilter, setGroupFilter] = useState('all')
   const [attempt, setAttempt] = useState(0)
-  const { hash } = useLocation()
-  const headingRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      const target =
-        hash === '#planner'
-          ? document.getElementById('planner')
-          : hash === '#tracker'
-            ? document.getElementById('tracker')
-            : headingRef.current
-      target?.focus({ preventScroll: true })
-      if (hash === '#planner' || hash === '#tracker')
-        target?.scrollIntoView({ block: 'start' })
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [hash])
-
   useEffect(() => {
     const controller = new AbortController()
     async function load() {
@@ -129,40 +106,7 @@ export default function GameDetails({
   ).length
 
   return (
-    <section className="game-details" aria-labelledby="game-details-title">
-      <div className="game-details-header">
-        <div>
-          <p className="eyebrow">GAME DETAILS</p>
-          <h2 id="game-details-title" ref={headingRef} tabIndex={-1}>
-            {game.title}
-          </h2>
-          <p>
-            {game.platform ?? 'Unknown platform'} ·{' '}
-            {game.progress === null
-              ? 'Progress unavailable'
-              : `${game.progress}% complete`}
-          </p>
-        </div>
-        <Link className="primary-button" to="/games">
-          Back to library
-        </Link>
-      </div>
-      {game.progress !== null && (
-        <progress
-          className="trophy-progress"
-          value={game.progress}
-          max={100}
-          aria-label={`Trophy progress for ${game.title}`}
-        />
-      )}
-      <button
-        className="primary-button"
-        type="button"
-        disabled={isActiveHunt}
-        onClick={() => onSetActiveHunt(game)}
-      >
-        {isActiveHunt ? 'Current active hunt' : 'Set as active hunt'}
-      </button>
+    <section className="game-details" aria-labelledby="tracker">
       <h3 id="tracker" tabIndex={-1}>
         Trophy Tracker
       </h3>

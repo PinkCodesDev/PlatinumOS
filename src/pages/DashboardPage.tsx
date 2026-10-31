@@ -1,3 +1,4 @@
+import RecentlyPlayed from '../components/RecentlyPlayed'
 import NextSteps from '../components/NextSteps'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -211,6 +212,7 @@ export default function DashboardPage({
           {huntMessage}
         </p>
       </section>
+      <RecentlyPlayed games={games} />
     </>
   )
 }
