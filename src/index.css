@@ -3,10 +3,12 @@
   color: #f5f7ff;
   background: #030712;
   font-synthesis: none;
+  color-scheme: dark;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
 
   --color-surface: #0c1933;
-  --color-border: #263c60;
+  --color-border: #29405f;
   --color-muted: #afbed6;
   --color-accent: #70b7ff;
 }

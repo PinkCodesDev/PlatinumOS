@@ -1,3 +1,4 @@
+import SidebarHunt from './components/SidebarHunt'
 import { useEffect, useState } from 'react'
 
 import './App.css'
@@ -181,25 +182,86 @@ function App() {
     return <Navigate to="/games" replace />
 
   return (
-    <div className="dashboard">
+    <div
+      className={`dashboard${location.pathname === '/' ? ' dashboard-home' : ''}`}
+    >
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <aside className="sidebar">
-        <Link className="brand" to="/">
-          PlatinumOS
+        <Link className="brand" to="/" aria-label="PlatinumOS — Dashboard">
+          <img
+            className="brand-mark"
+            src="/platinumos-logo.png"
+            alt=""
+            width={80}
+            height={80}
+          />
+          <span>
+            Platinum<span className="brand-os">OS</span>
+          </span>
         </Link>
         <nav aria-label="Main navigation">
+          <p className="sidebar-label">Workspace</p>
           <NavLink to="/" end>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
             Dashboard
           </NavLink>
-          <NavLink to="/games">My Library</NavLink>
+          <NavLink to="/games">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect x="3" y="4" width="6" height="16" rx="1.5" />
+              <rect x="12" y="4" width="9" height="16" rx="1.5" />
+            </svg>
+            My Library
+          </NavLink>
         </nav>
-        <p className="sidebar-note">Your next platinum starts here.</p>
+        <SidebarHunt
+          game={activeGame}
+          loading={activeHunt !== null && gamesLoadState === 'loading'}
+        />
+        <a
+          className="sidebar-repo"
+          href="https://github.com/PinkCodesDev/PlatinumOS"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub <span aria-hidden="true">↗</span>
+          <span className="sr-only"> (new tab)</span>
+        </a>
       </aside>
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex={-1}>
         <header className="dashboard-header">
-          <p className="eyebrow">YOUR HUNTING HQ</p>
+          <p className="eyebrow">TROPHY HUNTING MANAGER</p>
           <h1>{title}</h1>
-          <p>Plan your hunts. Track your trophies. Earn your platinum.</p>
-          <p role="status">{serverStatus}</p>
+          <p className="header-description">
+            {location.pathname === '/'
+              ? 'Your collection. Your next platinum.'
+              : 'Plan your hunts. Track your trophies.'}
+          </p>
+          <p
+            className="connection-status"
+            data-connected={serverStatus === 'Server connected'}
+            role="status"
+          >
+            {serverStatus}
+          </p>
         </header>
         <Routes>
           <Route

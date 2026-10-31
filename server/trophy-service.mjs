@@ -1,4 +1,8 @@
-import { getTitleTrophies, getUserTrophiesEarnedForTitle } from 'psn-api'
+import {
+  getTitleTrophies,
+  getTitleTrophyGroups,
+  getUserTrophiesEarnedForTitle,
+} from 'psn-api'
 import { PsnError, withTimeout } from './psn-errors.mjs'
 
 const invalidResponse = () =>
@@ -32,6 +36,7 @@ export function createTrophyService({
   auth,
   fetchDefinitions = getTitleTrophies,
   fetchEarned = getUserTrophiesEarnedForTitle,
+  fetchGroups = getTitleTrophyGroups,
   now = Date.now,
 }) {
   const cache = new Map()
@@ -45,14 +50,30 @@ export function createTrophyService({
         limit: 100,
         offset,
       })
-      const [definitions, progress] = await Promise.all([
+      const [definitions, progress, groupsResult] = await Promise.all([
         readPages((offset) =>
           fetchDefinitions(authorization, gameId, 'all', options(offset)),
         ),
         readPages((offset) =>
           fetchEarned(authorization, 'me', gameId, 'all', options(offset)),
         ),
+        withTimeout(
+          fetchGroups(authorization, gameId, { npServiceName: serviceName }),
+        ).catch(() => null),
       ])
+      const groupNames = new Map(
+        (Array.isArray(groupsResult?.trophyGroups)
+          ? groupsResult.trophyGroups
+          : []
+        )
+          .filter(
+            (group) =>
+              typeof group?.trophyGroupId === 'string' &&
+              typeof group.trophyGroupName === 'string' &&
+              group.trophyGroupName.trim(),
+          )
+          .map((group) => [group.trophyGroupId, group.trophyGroupName.trim()]),
+      )
       const progressById = new Map(
         progress.map((trophy) => [trophy.trophyId, trophy]),
       )
@@ -74,6 +95,7 @@ export function createTrophyService({
           iconUrl: trophy.trophyIconUrl ?? null,
           type: trophy.trophyType,
           groupId: trophy.trophyGroupId ?? 'default',
+          groupName: groupNames.get(trophy.trophyGroupId ?? 'default') ?? null,
           earned:
             typeof userTrophy?.earned === 'boolean' ? userTrophy.earned : null,
           earnedRate:

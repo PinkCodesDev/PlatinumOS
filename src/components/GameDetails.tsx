@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import type { Game, Trophy, TrophiesResponse } from '../types'
 
@@ -51,11 +51,23 @@ export default function GameDetails({
   const [typeFilter, setTypeFilter] = useState<Trophy['type'] | 'all'>('all')
   const [groupFilter, setGroupFilter] = useState('all')
   const [attempt, setAttempt] = useState(0)
+  const { hash } = useLocation()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
+    const frame = requestAnimationFrame(() => {
+      const target =
+        hash === '#planner'
+          ? document.getElementById('planner')
+          : hash === '#tracker'
+            ? document.getElementById('tracker')
+            : headingRef.current
+      target?.focus({ preventScroll: true })
+      if (hash === '#planner' || hash === '#tracker')
+        target?.scrollIntoView({ block: 'start' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hash])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -95,6 +107,13 @@ export default function GameDetails({
           ? 1
           : a.localeCompare(b, undefined, { numeric: true }),
   )
+  function groupLabel(id: string) {
+    if (id === 'default') return 'Base game'
+    return (
+      trophies.find((trophy) => trophy.groupId === id && trophy.groupName)
+        ?.groupName ?? `Unnamed DLC (${id})`
+    )
+  }
   const visibleTrophies = trophies.filter((trophy) => {
     const matchesStatus =
       filter === 'all' ||
@@ -144,7 +163,9 @@ export default function GameDetails({
       >
         {isActiveHunt ? 'Current active hunt' : 'Set as active hunt'}
       </button>
-      <h3>Trophy Tracker</h3>
+      <h3 id="tracker" tabIndex={-1}>
+        Trophy Tracker
+      </h3>
       <p className="details-note">
         All trophy groups, including DLC. Descriptions may contain spoilers.
       </p>
@@ -229,7 +250,7 @@ export default function GameDetails({
                 <option value="all">All groups</option>
                 {groupIds.map((id) => (
                   <option key={id} value={id}>
-                    {id === 'default' ? 'Base game' : `DLC group ${id}`}
+                    {groupLabel(id)}
                   </option>
                 ))}
               </select>
@@ -261,46 +282,54 @@ export default function GameDetails({
           ) : (
             <ul className="trophy-list">
               {visibleTrophies.map((trophy) => (
-                <li key={trophy.id}>
-                  <div className="trophy-row-heading">
-                    <div className="trophy-title">
-                      <TrophyIcon iconUrl={trophy.iconUrl} />
-                      <h4>{trophy.name}</h4>
+                <li key={trophy.id} className="trophy-item">
+                  <TrophyIcon iconUrl={trophy.iconUrl} />
+                  <div className="trophy-copy">
+                    <h4>{trophy.name}</h4>
+                    <p>{trophy.description}</p>
+                    <div className="trophy-meta">
+                      <span
+                        className={
+                          trophy.earned === true
+                            ? 'trophy-status is-earned'
+                            : 'trophy-status'
+                        }
+                      >
+                        {trophy.earned === null
+                          ? 'Status unavailable'
+                          : trophy.earned
+                            ? '✓ Earned'
+                            : 'Not earned'}
+                      </span>
+                      <span>{groupLabel(trophy.groupId)}</span>
                     </div>
+                  </div>
+                  <div className="trophy-actions">
                     <span
                       className={`trophy-grade trophy-grade-${trophy.type}`}
                     >
                       {trophy.type}
                     </span>
+                    <p
+                      className="trophy-rarity"
+                      title="Percentage of PSN players who earned this trophy"
+                    >
+                      {trophy.earnedRate === null
+                        ? 'Rarity unavailable'
+                        : `${trophy.earnedRate}% of players`}
+                    </p>
+                    <button
+                      className="primary-button secondary-button"
+                      type="button"
+                      disabled={plannedTrophyIds.includes(trophy.id)}
+                      onClick={() => onAddToPlan(trophy)}
+                      aria-label={`${plannedTrophyIds.includes(trophy.id) ? 'Already in plan' : 'Add to plan'}: ${trophy.name}`}
+                    >
+                      {plannedTrophyIds.includes(trophy.id)
+                        ? 'Already in plan'
+                        : '+ Add to plan'}
+                    </button>
                   </div>
-                  <p>{trophy.description}</p>
-                  <p className="details-note">
-                    {trophy.earned === null
-                      ? 'Status unavailable'
-                      : trophy.earned
-                        ? 'Earned'
-                        : 'Not earned'}{' '}
-                    ·{' '}
-                    {trophy.groupId === 'default'
-                      ? 'Base game'
-                      : `Group ${trophy.groupId}`}
-                  </p>
-                  <p>
-                    {trophy.earnedRate === null
-                      ? 'Player completion rate unavailable'
-                      : `${trophy.earnedRate}% of players earned this trophy`}
-                  </p>
-                  <button
-                    className="primary-button"
-                    type="button"
-                    disabled={plannedTrophyIds.includes(trophy.id)}
-                    onClick={() => onAddToPlan(trophy)}
-                    aria-label={`${plannedTrophyIds.includes(trophy.id) ? 'Already in plan' : 'Add to plan'}: ${trophy.name}`}
-                  >
-                    {plannedTrophyIds.includes(trophy.id)
-                      ? 'Already in plan'
-                      : 'Add to plan'}
-                  </button>
                 </li>
               ))}
             </ul>

@@ -16,6 +16,9 @@ test('trophies join by ID, paginate both endpoints, share requests and expire ca
   const calls = []
   const service = createTrophyService({
     auth,
+    fetchGroups: async () => ({
+      trophyGroups: [{ trophyGroupId: '001', trophyGroupName: 'Dead Kings' }],
+    }),
     now: () => clock,
     fetchDefinitions: async (_, id, group, options) => {
       assert.equal(id, 'NPWR12345_00')
@@ -52,6 +55,8 @@ test('trophies join by ID, paginate both endpoints, share requests and expire ca
     service.getTrophies('NPWR12345_00', 'trophy2'),
   ])
   assert.deepEqual(a, b)
+  assert.equal(a.trophies[1].groupName, 'Dead Kings')
+  assert.equal(a.trophies[0].groupName, null)
   assert.deepEqual(
     a.trophies.map((t) => [t.id, t.earned, t.earnedRate]),
     [
@@ -70,6 +75,9 @@ test('trophies join by ID, paginate both endpoints, share requests and expire ca
 test('missing trophy status and rarity stay unknown; empty lists are valid', async () => {
   const service = createTrophyService({
     auth,
+    fetchGroups: async () => ({
+      trophyGroups: [{ trophyGroupId: '001', trophyGroupName: 'Dead Kings' }],
+    }),
     fetchDefinitions: async () => ({ trophies: [definition(0)] }),
     fetchEarned: async () => ({ trophies: [] }),
   })
@@ -78,6 +86,9 @@ test('missing trophy status and rarity stay unknown; empty lists are valid', asy
   assert.equal(trophies[0].earnedRate, null)
   const empty = createTrophyService({
     auth,
+    fetchGroups: async () => ({
+      trophyGroups: [{ trophyGroupId: '001', trophyGroupName: 'Dead Kings' }],
+    }),
     fetchDefinitions: async () => ({ trophies: [] }),
     fetchEarned: async () => ({ trophies: [] }),
   })
@@ -108,6 +119,9 @@ test('bad pagination and malformed response are rejected', async () => {
   ]) {
     const service = createTrophyService({
       auth,
+      fetchGroups: async () => ({
+        trophyGroups: [{ trophyGroupId: '001', trophyGroupName: 'Dead Kings' }],
+      }),
       fetchDefinitions: async () => response,
       fetchEarned: async () => ({ trophies: [] }),
     })
@@ -121,6 +135,9 @@ test('provider errors are sanitized and failed requests can be retried', async (
   let calls = 0
   const service = createTrophyService({
     auth,
+    fetchGroups: async () => ({
+      trophyGroups: [{ trophyGroupId: '001', trophyGroupName: 'Dead Kings' }],
+    }),
     fetchDefinitions: async () => {
       if (calls++ === 0) throw new Error('private-token')
       return { trophies: [] }
@@ -134,4 +151,19 @@ test('provider errors are sanitized and failed requests can be retried', async (
       !error.message.includes('private-token'),
   )
   assert.deepEqual((await service.getTrophies('A', 'trophy')).trophies, [])
+})
+
+test('group metadata failure does not hide trophies', async () => {
+  const service = createTrophyService({
+    auth,
+    fetchDefinitions: async () => ({ trophies: [definition(1)] }),
+    fetchEarned: async () => ({ trophies: [] }),
+    fetchGroups: async () => {
+      throw new Error('private-token')
+    },
+  })
+  const result = await service.getTrophies('A', 'trophy2')
+  assert.equal(result.trophies.length, 1)
+  assert.equal(result.trophies[0].groupName, null)
+  assert.equal(JSON.stringify(result).includes('private-token'), false)
 })

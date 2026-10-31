@@ -53,7 +53,12 @@ export default function PlatinumPlanner({
   }
 
   return (
-    <section className="platinum-planner" aria-labelledby="planner-title">
+    <section
+      id="planner"
+      tabIndex={-1}
+      className="platinum-planner"
+      aria-labelledby="planner-title"
+    >
       <h2 id="planner-title">Platinum Planner</h2>
       <p>
         Your plan for <strong>{game.title}</strong>. Checking a step does not

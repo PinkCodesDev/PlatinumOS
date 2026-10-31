@@ -4,6 +4,7 @@ export type Trophy = {
   description: string
   iconUrl: string | null
   type: 'bronze' | 'silver' | 'gold' | 'platinum'
+  groupName: string | null
   groupId: string
   earned: boolean | null
   earnedRate: number | null

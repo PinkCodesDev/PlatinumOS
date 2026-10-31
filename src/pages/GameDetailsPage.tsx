@@ -1,3 +1,4 @@
+import TrophyGuide from '../components/TrophyGuide'
 import { usePlatinumPlan } from '../hooks/usePlatinumPlan'
 import PlatinumPlanner from '../components/PlatinumPlanner'
 import { Link, useParams } from 'react-router-dom'
@@ -77,26 +78,7 @@ function GameWorkspace({
   const plan = usePlatinumPlan(game)
   return (
     <>
-      {game.serviceName === 'trophy' && game.id === 'NPWR06600_00' && (
-        <section className="game-guide" aria-labelledby="guide-title">
-          <h2 id="guide-title">Trophy guide</h2>
-          <p>
-            Plan your Assassin's Creed Unity platinum with this community guide
-            on PSNProfiles.
-          </p>
-          <a
-            className="primary-button"
-            href="https://psnprofiles.com/guide/3324-assassins-creed-unity-trophy-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open guide on PSNProfiles (new tab)
-          </a>
-          <p className="details-note">
-            External community guide. The full guide is hosted on PSNProfiles.
-          </p>
-        </section>
-      )}
+      <TrophyGuide game={game} />
       <PlatinumPlanner game={game} plan={plan} />
       <GameDetails
         key={`${game.serviceName}:${game.id}`}

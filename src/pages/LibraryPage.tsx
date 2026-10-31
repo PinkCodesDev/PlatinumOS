@@ -125,7 +125,7 @@ export default function LibraryPage({
         </p>
       )}
 
-      <div className="stats-grid">
+      <div className="library-grid">
         {sortedGames.map((game) => (
           <GameCard key={`${game.serviceName}:${game.id}`} game={game} />
         ))}
