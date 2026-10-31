@@ -1,3 +1,4 @@
+import PlatinumPlanner from '../components/PlatinumPlanner'
 import { Link, useParams } from 'react-router-dom'
 import type { Game, GamesLoadState } from '../types'
 import GameDetails from '../components/GameDetails'
@@ -55,6 +56,7 @@ export default function GameDetailsPage({
 
   return (
     <>
+      <PlatinumPlanner key={`${game.serviceName}:${game.id}`} game={game} />
       <GameDetails
         key={`${game.serviceName}:${game.id}`}
         game={game}
