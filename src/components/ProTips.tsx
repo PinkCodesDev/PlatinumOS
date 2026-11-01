@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Game } from '../types'
 import type { PlatinumPlan } from '../hooks/usePlatinumPlan'
 
@@ -35,6 +35,7 @@ export default function ProTips({
   game: Game
   plan: PlatinumPlan
 }) {
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const key = `platinumos.tips.v1:${game.serviceName}:${game.id}`
   const [initial] = useState(() => readTips(key))
   const [tips, setTips] = useState(initial.tips)
@@ -69,6 +70,8 @@ export default function ProTips({
           <label htmlFor="tip-text">What should you remember?</label>
           <textarea
             id="tip-text"
+            ref={inputRef}
+            aria-describedby="tip-help"
             value={text}
             maxLength={200}
             rows={3}
@@ -76,6 +79,9 @@ export default function ProTips({
             placeholder="While completing a mission, collect its optional items too…"
           />
         </div>
+        <p id="tip-help" className="details-note">
+          Up to 200 characters. Saved separately for this game.
+        </p>
         <button
           type="submit"
           className="primary-button"
@@ -108,6 +114,7 @@ export default function ProTips({
                 <button
                   type="button"
                   className="primary-button secondary-button"
+                  aria-label={`${plan.steps.some((step) => step.tipId === tip.id) ? 'Already in plan' : 'Add to plan'}: ${tip.text}`}
                   disabled={plan.steps.some((step) => step.tipId === tip.id)}
                   onClick={() => {
                     plan.addTip(tip.id, tip.text)
@@ -121,9 +128,11 @@ export default function ProTips({
                 <button
                   type="button"
                   className="primary-button secondary-button"
-                  onClick={() =>
+                  aria-label={`Delete tip: ${tip.text}`}
+                  onClick={() => {
                     save(tips.filter((entry) => entry.id !== tip.id))
-                  }
+                    inputRef.current?.focus()
+                  }}
                 >
                   Delete tip
                 </button>

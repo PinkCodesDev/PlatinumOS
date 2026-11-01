@@ -1,5 +1,5 @@
 import SidebarHunt from './components/SidebarHunt'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import './App.css'
 
@@ -165,6 +165,7 @@ function App() {
   }
 
   const location = useLocation()
+  const previousPath = useRef(location.pathname)
   const title =
     location.pathname === '/'
       ? 'Dashboard'
@@ -176,6 +177,10 @@ function App() {
   useEffect(() => {
     document.title = title + ' | PlatinumOS'
     window.scrollTo(0, 0)
+    if (previousPath.current !== location.pathname) {
+      document.getElementById('page-title')?.focus({ preventScroll: true })
+      previousPath.current = location.pathname
+    }
   }, [location.pathname, title])
 
   if (location.pathname === '/' && location.hash === '#library')
@@ -249,7 +254,9 @@ function App() {
       <main id="main-content" className="main-content" tabIndex={-1}>
         <header className="dashboard-header">
           <p className="eyebrow">TROPHY HUNTING MANAGER</p>
-          <h1>{title}</h1>
+          <h1 id="page-title" tabIndex={-1}>
+            {title}
+          </h1>
           <p className="header-description">
             {location.pathname === '/'
               ? 'Your collection. Your next platinum.'

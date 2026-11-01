@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Game } from '../types'
 
@@ -15,6 +15,22 @@ export default function PlatinumPlanner({
   const [title, setTitle] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftTitle, setDraftTitle] = useState('')
+  const pendingFocus = useRef<string | null>(null)
+  useEffect(() => {
+    if (pendingFocus.current) {
+      document.getElementById(pendingFocus.current)?.focus()
+      pendingFocus.current = null
+    }
+  }, [editingId, steps])
+  function finishEditing() {
+    pendingFocus.current = 'edit-button-' + editingId
+    setEditingId(null)
+  }
+  function deleteStep(id: string, index: number) {
+    const next = steps[index + 1] ?? steps[index - 1]
+    pendingFocus.current = next ? 'edit-button-' + next.id : 'plan-step'
+    updateSteps(steps.filter((step) => step.id !== id))
+  }
   const completedCount = steps.filter((step) => step.completed).length
 
   function addStep(event: FormEvent<HTMLFormElement>) {
@@ -37,7 +53,7 @@ export default function PlatinumPlanner({
         step.id === editingId ? { ...step, title: nextTitle } : step,
       ),
     )
-    setEditingId(null)
+    finishEditing()
   }
 
   function moveStep(id: string, direction: -1 | 1) {
@@ -49,6 +65,7 @@ export default function PlatinumPlanner({
       nextSteps[targetIndex],
       nextSteps[index],
     ]
+    pendingFocus.current = 'edit-button-' + id
     updateSteps(nextSteps)
   }
 
@@ -84,7 +101,7 @@ export default function PlatinumPlanner({
           Add step
         </button>
       </form>
-      <p>
+      <p role="status" aria-atomic="true">
         {completedCount} / {steps.length} steps completed
       </p>
       {steps.length > 0 && (
@@ -108,7 +125,10 @@ export default function PlatinumPlanner({
                   className="planner-edit-form"
                   onSubmit={saveEdit}
                   onKeyDown={(event) => {
-                    if (event.key === 'Escape') setEditingId(null)
+                    if (event.key === 'Escape') {
+                      event.preventDefault()
+                      finishEditing()
+                    }
                   }}
                 >
                   <div className="library-field">
@@ -133,7 +153,7 @@ export default function PlatinumPlanner({
                     <button
                       className="primary-button"
                       type="button"
-                      onClick={() => setEditingId(null)}
+                      onClick={finishEditing}
                     >
                       Cancel
                     </button>
@@ -175,6 +195,7 @@ export default function PlatinumPlanner({
                   className="primary-button"
                   type="button"
                   disabled={editingId !== null}
+                  id={`edit-button-${step.id}`}
                   aria-label={`Edit step: ${step.title}`}
                   onClick={() => {
                     setEditingId(step.id)
@@ -206,9 +227,7 @@ export default function PlatinumPlanner({
                   type="button"
                   disabled={editingId !== null}
                   aria-label={`Delete step: ${step.title}`}
-                  onClick={() =>
-                    updateSteps(steps.filter((item) => item.id !== step.id))
-                  }
+                  onClick={() => deleteStep(step.id, index)}
                 >
                   Delete
                 </button>
