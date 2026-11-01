@@ -112,3 +112,14 @@ Provider requests have bounded waits, but the wrapper cannot cancel the underlyi
 Games include the trophy set ID, service name, title, platform, optional icon, PSN-reported progress, trophy counts and last update. Missing counts remain null. The response includes source and fetch time.
 
 Run `npm.cmd run test:server` for offline tests with synthetic data. These verify auth lifecycle, concurrent requests, pagination, cache and error handling; a successful real PSN request must still be verified locally after credentials are configured. Trophy details and UI rendering of the library are later steps.
+
+## Frontend tests
+
+Run `npm.cmd run test:frontend` for one run, or `npm.cmd run test:watch` while editing.
+`npm.cmd run check` includes both frontend and backend tests.
+
+Vitest runs React components in jsdom. Testing Library and user-event find controls by their accessible labels and simulate typing, clicks and keyboard input. These tests cover trophy search and filters, spoiler protection, request retries, Planner editing and persistence, and Pro tips integration.
+
+Tests use fictional fixtures, replace fetch, and reset isolated jsdom storage between cases. They do not need a running server, PSN credentials or your browser data. Remounting components checks that persisted data can be restored. Storage failures are simulated to verify retry behavior.
+
+A test follows Arrange–Act–Assert: render the component with known data, perform an action, then check the result with `expect`. jsdom does not check visual layout or replace testing in a real browser.
