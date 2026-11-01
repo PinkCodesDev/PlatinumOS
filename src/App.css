@@ -1602,3 +1602,185 @@ h2 {
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Responsive layout: allow content to shrink and keep touch actions reachable. */
+.main-content > *,
+.game-card,
+.hunt-card,
+.game-tabs,
+.planner-actions,
+.tip-actions {
+  min-width: 0;
+}
+.game-card h3,
+.game-guide,
+.pro-tips,
+.primary-button {
+  overflow-wrap: anywhere;
+}
+.game-tabs {
+  flex-wrap: wrap;
+}
+
+@media (min-width: 601px) and (max-width: 1100px) {
+  .dashboard-home .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .dashboard-home .stat-card {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+    gap: 8px;
+  }
+  .dashboard-home .stat-icon {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dashboard-home .stat-card h3 {
+    grid-row: 2;
+  }
+  .dashboard-home .stat-value {
+    grid-row: 3;
+    margin: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    gap: 14px;
+    padding: 16px 20px;
+  }
+  .sidebar .brand {
+    justify-content: flex-start;
+    font-size: 23px;
+  }
+  .sidebar nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sidebar-label {
+    grid-column: 1 / -1;
+  }
+  .sidebar nav a {
+    justify-content: center;
+    padding: 10px;
+  }
+  .sidebar-hunt {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-top: 12px;
+    gap: 6px 12px;
+  }
+  .sidebar-hunt h2,
+  .sidebar-hunt-game,
+  .sidebar-hunt-progress,
+  .sidebar-hunt > progress {
+    grid-column: 1 / -1;
+  }
+  .sidebar-hunt > a {
+    padding: 6px 0;
+  }
+  .sidebar-repo {
+    padding-top: 8px;
+    min-height: 44px;
+    align-items: center;
+  }
+  .game-details .trophy-list .trophy-item {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+  .trophy-item .trophy-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .trophy-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+  .trophy-actions .primary-button {
+    margin-left: auto;
+    min-height: 44px;
+  }
+  .planner-step {
+    flex-basis: 100%;
+    min-height: 44px;
+  }
+  .planner-actions {
+    width: 100%;
+  }
+  .planner-actions .primary-button {
+    flex: 1 1 80px;
+  }
+  .library-field input,
+  .library-field select,
+  .tip-form textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+  .sidebar-label {
+    display: none;
+  }
+  .game-details,
+  .platinum-planner,
+  .game-guide,
+  .game-summary,
+  .pro-tips {
+    padding: 14px;
+  }
+  .game-details-header > *,
+  .game-summary > button {
+    width: 100%;
+  }
+  .tip-actions .primary-button {
+    flex: 1 1 120px;
+  }
+  .tip-form > button {
+    width: 100%;
+  }
+  .hunt-actions .primary-button {
+    width: 100%;
+  }
+  .hunt-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-tabs button {
+    min-width: 0;
+    flex: 1 1 75px;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .dashboard-home .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-home .stat-card {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+  .dashboard-home .stat-card h3 {
+    grid-row: 1;
+    min-height: 0;
+    font-size: 13px;
+  }
+  .dashboard-home .stat-value {
+    grid-row: 2;
+  }
+  .dashboard-home .stat-icon {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}
