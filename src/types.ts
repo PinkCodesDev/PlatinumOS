@@ -1,4 +1,5 @@
 export type Trophy = {
+  hidden: boolean
   id: string
   name: string
   description: string

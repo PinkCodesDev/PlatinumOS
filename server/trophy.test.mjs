@@ -167,3 +167,24 @@ test('group metadata failure does not hide trophies', async () => {
   assert.equal(result.trophies[0].groupName, null)
   assert.equal(JSON.stringify(result).includes('private-token'), false)
 })
+
+test('hidden flags are forwarded as booleans independently of earned status', async () => {
+  const service = createTrophyService({
+    auth,
+    fetchDefinitions: async () => ({
+      trophies: [
+        { ...definition(0), trophyHidden: true },
+        { ...definition(1), trophyHidden: false },
+        definition(2),
+      ],
+    }),
+    fetchEarned: async () => ({ trophies: [{ trophyId: 0, earned: true }] }),
+    fetchGroups: async () => ({ trophyGroups: [] }),
+  })
+  const { trophies } = await service.getTrophies('A', 'trophy')
+  assert.deepEqual(
+    trophies.map((t) => t.hidden),
+    [true, false, false],
+  )
+  assert.equal(trophies[0].earned, true)
+})

@@ -5,6 +5,7 @@ export type PlanStep = {
   title: string
   completed: boolean
   trophyId?: string
+  tipId?: string
 }
 type SavedPlan = { steps: PlanStep[]; warning: string }
 
@@ -25,6 +26,7 @@ function readPlan(key: string): SavedPlan {
           step.title.trim().length > 0 &&
           step.title.length <= 200 &&
           typeof step.completed === 'boolean' &&
+          (step.tipId === undefined || typeof step.tipId === 'string') &&
           (step.trophyId === undefined ||
             (typeof step.trophyId === 'string' && step.trophyId.length > 0)),
       ) ||
@@ -33,10 +35,11 @@ function readPlan(key: string): SavedPlan {
       throw new Error('Invalid plan')
     }
     return {
-      steps: data.map(({ id, title, completed, trophyId }) => ({
+      steps: data.map(({ id, title, completed, trophyId, tipId }) => ({
         id,
         title,
         completed,
+        ...(tipId === undefined ? {} : { tipId }),
         ...(trophyId === undefined ? {} : { trophyId }),
       })),
       warning: '',
@@ -90,6 +93,27 @@ export function usePlatinumPlan(game: Game) {
     ])
     setMessage('Trophy added to your plan.')
   }
-  return { steps, updateSteps, savePlan, message, storageError, addTrophy }
+  function addTip(id: string, title: string) {
+    if (stepsRef.current.some((step) => step.tipId === id)) return
+    updateSteps([
+      ...stepsRef.current,
+      {
+        id: crypto.randomUUID(),
+        title: title.trim().slice(0, 200),
+        completed: false,
+        tipId: id,
+      },
+    ])
+    setMessage('Tip added to your plan.')
+  }
+  return {
+    addTip,
+    steps,
+    updateSteps,
+    savePlan,
+    message,
+    storageError,
+    addTrophy,
+  }
 }
 export type PlatinumPlan = ReturnType<typeof usePlatinumPlan>

@@ -1550,3 +1550,55 @@ h2 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.trophy-search {
+  grid-column: 1 / -1;
+}
+
+.pro-tips {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #2b4260;
+  border-radius: 16px;
+  background: #0c1b30;
+}
+.tip-form {
+  display: grid;
+  gap: 1rem;
+}
+.tip-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 90px;
+  padding: 12px;
+  border: 1px solid #40658c;
+  border-radius: 10px;
+  background: #071629;
+  color: #edf4ff;
+  font: inherit;
+}
+.tip-form > button {
+  justify-self: start;
+}
+.tip-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.tip-list li {
+  padding: 16px;
+  background: #071629;
+  border: 1px solid #2b4260;
+  border-radius: 10px;
+}
+.tip-list p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

@@ -90,6 +90,7 @@ export function createTrophyService({
             : NaN
         return {
           id: String(trophy.trophyId),
+          hidden: trophy.trophyHidden === true,
           name: trophy.trophyName || 'Hidden trophy',
           description: trophy.trophyDetail || 'Description unavailable.',
           iconUrl: trophy.trophyIconUrl ?? null,

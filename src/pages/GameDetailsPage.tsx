@@ -1,3 +1,4 @@
+import ProTips from '../components/ProTips'
 import TrophyGuide from '../components/TrophyGuide'
 import { usePlatinumPlan } from '../hooks/usePlatinumPlan'
 import PlatinumPlanner from '../components/PlatinumPlanner'
@@ -191,6 +192,7 @@ function GameWorkspace({
         hidden={activeTab !== 'guide'}
       >
         <TrophyGuide game={game} />
+        <ProTips game={game} plan={plan} />
       </div>
     </>
   )

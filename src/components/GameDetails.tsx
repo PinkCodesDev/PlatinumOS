@@ -42,6 +42,15 @@ export default function GameDetails({
   plannedTrophyIds,
 }: Props) {
   const [result, setResult] = useState<LoadState>({ status: 'loading' })
+  const [revealedIds, setRevealedIds] = useState<string[]>([])
+  function isConcealed(trophy: Trophy) {
+    return (
+      trophy.hidden &&
+      trophy.earned !== true &&
+      !revealedIds.includes(trophy.id)
+    )
+  }
+  const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<TrophyFilter>('all')
   const [typeFilter, setTypeFilter] = useState<Trophy['type'] | 'all'>('all')
   const [groupFilter, setGroupFilter] = useState('all')
@@ -91,6 +100,7 @@ export default function GameDetails({
         ?.groupName ?? `Unnamed DLC (${id})`
     )
   }
+  const normalizedQuery = searchQuery.trim().toLowerCase()
   const visibleTrophies = trophies.filter((trophy) => {
     const matchesStatus =
       filter === 'all' ||
@@ -98,7 +108,12 @@ export default function GameDetails({
       (filter === 'missing' && trophy.earned === false)
     const matchesType = typeFilter === 'all' || trophy.type === typeFilter
     const matchesGroup = groupFilter === 'all' || trophy.groupId === groupFilter
-    return matchesStatus && matchesType && matchesGroup
+    const matchesSearch =
+      normalizedQuery === '' ||
+      (!isConcealed(trophy) &&
+        (trophy.name.toLowerCase().includes(normalizedQuery) ||
+          trophy.description.toLowerCase().includes(normalizedQuery)))
+    return matchesStatus && matchesType && matchesGroup && matchesSearch
   })
   const earnedCount = trophies.filter((trophy) => trophy.earned === true).length
   const unknownCount = trophies.filter(
@@ -111,7 +126,8 @@ export default function GameDetails({
         Trophy Tracker
       </h3>
       <p className="details-note">
-        All trophy groups, including DLC. Descriptions may contain spoilers.
+        Hidden, unearned trophies are concealed until you reveal them. Search
+        only checks revealed details. Other descriptions may contain spoilers.
       </p>
       {result.status === 'loading' && (
         <p role="status">Loading trophies from PSN…</p>
@@ -140,6 +156,16 @@ export default function GameDetails({
             {unknownCount > 0 ? ` · ${unknownCount} with unknown status` : ''}
           </p>
           <div className="trophy-filters">
+            <div className="library-field trophy-search">
+              <label htmlFor="trophy-search">Search trophies</label>
+              <input
+                id="trophy-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by name or description"
+              />
+            </div>
             <div className="library-field">
               <label htmlFor="trophy-filter">Show trophies</label>
               <select
@@ -205,9 +231,11 @@ export default function GameDetails({
               disabled={
                 filter === 'all' &&
                 typeFilter === 'all' &&
-                groupFilter === 'all'
+                groupFilter === 'all' &&
+                searchQuery === ''
               }
               onClick={() => {
+                setSearchQuery('')
                 setFilter('all')
                 setTypeFilter('all')
                 setGroupFilter('all')
@@ -222,15 +250,40 @@ export default function GameDetails({
           {trophies.length === 0 ? (
             <p>No trophies available for this game.</p>
           ) : visibleTrophies.length === 0 ? (
-            <p>No trophies match these filters.</p>
+            <p>No trophies match your search and filters.</p>
           ) : (
             <ul className="trophy-list">
               {visibleTrophies.map((trophy) => (
                 <li key={trophy.id} className="trophy-item">
-                  <TrophyIcon iconUrl={trophy.iconUrl} />
+                  <TrophyIcon
+                    iconUrl={isConcealed(trophy) ? null : trophy.iconUrl}
+                  />
                   <div className="trophy-copy">
-                    <h4>{trophy.name}</h4>
-                    <p>{trophy.description}</p>
+                    <h4>
+                      {isConcealed(trophy) ? 'Hidden trophy' : trophy.name}
+                    </h4>
+                    <p>
+                      {isConcealed(trophy)
+                        ? 'Reveal this trophy to see its requirements.'
+                        : trophy.description}
+                    </p>
+                    {trophy.hidden && trophy.earned !== true && (
+                      <button
+                        type="button"
+                        className="primary-button secondary-button"
+                        onClick={() =>
+                          setRevealedIds((ids) =>
+                            ids.includes(trophy.id)
+                              ? ids.filter((id) => id !== trophy.id)
+                              : [...ids, trophy.id],
+                          )
+                        }
+                      >
+                        {isConcealed(trophy)
+                          ? 'Reveal spoiler'
+                          : 'Hide spoiler'}
+                      </button>
+                    )}
                     <div className="trophy-meta">
                       <span
                         className={
@@ -265,9 +318,12 @@ export default function GameDetails({
                     <button
                       className="primary-button secondary-button"
                       type="button"
-                      disabled={plannedTrophyIds.includes(trophy.id)}
+                      disabled={
+                        isConcealed(trophy) ||
+                        plannedTrophyIds.includes(trophy.id)
+                      }
                       onClick={() => onAddToPlan(trophy)}
-                      aria-label={`${plannedTrophyIds.includes(trophy.id) ? 'Already in plan' : 'Add to plan'}: ${trophy.name}`}
+                      aria-label={`${plannedTrophyIds.includes(trophy.id) ? 'Already in plan' : 'Add to plan'}: ${isConcealed(trophy) ? 'Hidden trophy' : trophy.name}`}
                     >
                       {plannedTrophyIds.includes(trophy.id)
                         ? 'Already in plan'
