@@ -1,143 +1,129 @@
-# PlatinumOS
+# PlatinumOS — Trophy Hunting Manager
 
-A trophy hunting manager built as a Junior Frontend Developer portfolio project.
+Aplikacja do planowania platyn i śledzenia trofeów PlayStation. Buduję ją jako projekt portfolio, rozwijając umiejętności potrzebne do pracy jako Junior Frontend Developer.
 
-## Current stage
+**[Otwórz demo →](https://pinkcodesdev.github.io/PlatinumOS/)** — bez instalacji i logowania.
 
-Tooling foundation only. The React starter is unchanged; product screens and business logic will be built step by step.
+Demo zawiera fikcyjne gry i przykładowe trofea. Możesz sprawdzić wyszukiwanie, filtry, wybrać aktywną grę i ułożyć własny plan. Zmiany zapisują się w Twojej przeglądarce, a przycisk **Reset demo** przywraca profil startowy. Pełna wersja uruchamiana lokalnie pobiera dane z PSN.
 
-## Requirements
+## Skąd ten pomysł?
 
-- Node.js 24
-- npm 11
-- Git
+Podczas zdobywania platyny w Assassin’s Creed Unity musiałem drugi raz przechodzić misje co-op. Za pierwszym razem nie zebrałem wszystkich punktów synchronizacji potrzebnych do odblokowania umiejętności. Dopiero później zorientowałem się, że mogłem zrobić obie rzeczy przy jednym podejściu.
 
-## Local development
+Chciałem mieć miejsce, w którym widzę brakujące trofea, zapisuję wskazówki i planuję kolejność działań. Stąd PlatinumOS — projekt oparty na problemie, z którym sam się spotkałem jako gracz.
 
-```powershell
-npm.cmd ci
-npm.cmd run dev
+## Jak wygląda pełna wersja
+
+Poniższe screenshoty pochodzą z lokalnej wersji z danymi PSN. Publiczne demo korzysta z tych samych ekranów, ale pokazuje przykładowe gry i statystyki.
+
+### Dashboard
+
+Statystyki biblioteki, aktywna gra, postęp trofeów i ostatnio uruchamiane tytuły.
+
+![Dashboard PlatinumOS z danymi PSN](docs/screenshots/dashboard-psn.png)
+
+### My Library
+
+Biblioteka z okładkami, wyszukiwaniem, sortowaniem i filtrowaniem postępu.
+
+![Biblioteka gier z PSN](docs/screenshots/library-psn.png)
+
+### Trophy Tracker
+
+Lista trofeów, wymagania, rzadkość i filtry rodzaju oraz grupy DLC.
+
+![Trophy Tracker w pełnej wersji](docs/screenshots/trophies-psn.png)
+
+## Co już działa
+
+- **Dashboard** — liczba gier, zdobytych trofeów i platyn, Active hunt, następne kroki planu oraz Recently played.
+- **My Library** — wyszukiwanie po tytule, sortowanie, filtrowanie postępu, okładki i paski postępu.
+- **Trophy Tracker** — opisy i ikony trofeów, status zdobycia, procent graczy, którzy zdobyli trofeum, wyszukiwanie oraz filtry statusu, rodzaju i DLC. Ukryte trofea można odsłonić świadomie.
+- **Platinum Planner** — dodawanie własnych kroków lub trofeów, edycja, zmiana kolejności, odhaczanie i usuwanie. Każda gra ma osobny plan.
+- **Wskazówki i poradniki** — własne Pro tips, dodawanie ich do planu i odnośniki do poradników PSNProfiles. Gdy brakuje przypisanego linku, aplikacja pozwala go wyszukać. Treść poradników nie jest automatycznie kopiowana.
+- **Dwa źródła danych** — samodzielne demo oraz lokalna integracja z PSN. Zapisy obu profili są rozdzielone.
+- **Responsywność i dostępność** — układ na telefon i desktop, etykiety formularzy, obsługa klawiatury, zarządzanie focusem i komunikaty o błędach z możliwością ponowienia.
+
+## Stack
+
+| Obszar           | Technologie                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| Frontend         | React, TypeScript, React Router, Vite                               |
+| Wygląd           | CSS, bez frameworka UI                                              |
+| Backend lokalny  | Node.js, natywne `node:http`, JavaScript w plikach `.mjs`           |
+| Integracja       | `psn-api` — nieoficjalny klient PSN, endpointy HTTP zwracające JSON |
+| Zapis planów     | `localStorage`                                                      |
+| Testy            | Vitest, Testing Library, user-event, jsdom, Node.js test runner     |
+| Kontrola jakości | ESLint, Prettier, TypeScript                                        |
+| Publikacja       | GitHub Actions, GitHub Pages                                        |
+
+## Jak jest zorganizowany kod
+
+```text
+src/
+  pages/         strony Dashboard, Library i Game details
+  components/    karty gier, Tracker, Planner i pozostałe elementy UI
+  hooks/         logika planów i ich zapisu
+  data/          adapter danych, profil demo, wskazówki i linki do poradników
+  types.ts       wspólne typy danych
+server/          lokalne API, autoryzacja PSN i serwisy danych
+public/demo/     grafiki przykładowych gier i trofeów
+docs/screenshots/ screenshoty pełnej wersji
 ```
 
-Open the local URL printed by Vite. Keep the terminal running. Stop the server with Ctrl+C.
-On other shells, use `npm` instead of `npm.cmd`.
+Komponenty korzystają ze wspólnego adaptera danych. W trybie demo adapter zwraca lokalne dane, a w trybie PSN wywołuje backend. Dzięki temu oba tryby korzystają z tej samej logiki ekranów.
 
-## Commands
+Backend obsługuje autoryzację, odświeżanie tokenów, stronicowanie odpowiedzi i cache. Dane uwierzytelniające pozostają po stronie serwera. Błędy dostawcy są zamieniane na kontrolowane odpowiedzi dla interfejsu.
 
-| Command                    | Purpose                                          |
-| -------------------------- | ------------------------------------------------ |
-| `npm.cmd run dev`          | Start the development server                     |
-| `npm.cmd run typecheck`    | Check TypeScript types                           |
-| `npm.cmd run lint`         | Check code quality                               |
-| `npm.cmd run format`       | Format the project                               |
-| `npm.cmd run format:check` | Check formatting                                 |
-| `npm.cmd run build`        | Check types and create the production build      |
-| `npm.cmd run preview`      | Preview the production build locally             |
-| `npm.cmd run check`        | Run formatting, lint and production build checks |
+## Uruchomienie lokalne
 
-## Foundation
+Wymagania: **Node.js 24** i **npm 11**.
 
-React, TypeScript (strict), Vite, ESLint, Prettier and CSS.
-TypeScript is pinned to 5.9.3 to satisfy the generated typescript-eslint dependency range.
-The lockfile records the dependency versions; CI uses `npm ci` for reproducible installation.
-VS Code extension recommendations and format-on-save settings are included.
-GitHub Actions runs quality checks on pushes and pull requests once this project is uploaded to GitHub.
-
-## Planned features
-
-- Game library with search and filters.
-- Trophy checklist and personal completion progress.
-- Before-you-start tips and related trophy guidance.
-- Trophy rarity percentages, with source and update date once a suitable data source is verified.
-- Local demo first; Supabase accounts and persistence later.
-
-React Router, TanStack Query, React Hook Form, Zod, Supabase and testing libraries will be added when their features are implemented. No backend, PSN integration or hosting account has been configured yet.
-
-## Environment variables
-
-Do not commit secrets. Local `.env` files are ignored. Variables prefixed with `VITE_` are visible to the browser and must never contain private service credentials.
-
-## Windows troubleshooting
-
-If PowerShell blocks `npm.ps1`, use `npm.cmd` as shown above.
-If npm reports a certificate verification error and your system trusts the required certificate, enable system CA certificates for the current terminal before retrying:
-
-```powershell
-$env:NODE_USE_SYSTEM_CA='1'
+```bash
+git clone https://github.com/PinkCodesDev/PlatinumOS.git
+cd PlatinumOS
+npm ci
+npm run dev
 ```
 
-Keep TLS verification enabled.
+Otwórz adres wskazany przez Vite, domyślnie `http://localhost:5173/`. Demo nie potrzebuje backendu ani pliku `.env`. W PowerShell, jeśli system blokuje `npm.ps1`, użyj `npm.cmd` zamiast `npm`.
 
-## Local API server (PSN setup: steps 4.1–4.2)
+### Opcjonalnie: własne dane PSN
 
-Run the frontend and backend in separate terminals:
+1. Skopiuj `.env.example` do `.env`, jeśli nie masz jeszcze tego pliku.
+2. Ustaw lokalnie `PSN_NPSSO` zgodnie z [instrukcją uwierzytelniania psn-api](https://psn-api.achievements.app/authentication/authenticating-manually).
+3. W drugim terminalu uruchom `npm run dev:server`.
+4. W aplikacji wybierz **Data source → Local PSN**.
 
-```powershell
-npm.cmd run dev
-npm.cmd run dev:server
+Backend nasłuchuje na `127.0.0.1:3001`, a Vite przekazuje do niego żądania `/api`. Po zmianie `.env` uruchom backend ponownie. NPSSO może z czasem wymagać wymiany. Nie umieszczaj go w kodzie frontendu ani w repozytorium; `.env` jest ignorowany przez Git.
+
+## Sprawdzanie projektu
+
+```bash
+npm run check
 ```
 
-For a server without automatic restarts, use `npm.cmd run start:server`.
-The backend listens only on `127.0.0.1:3001`. Vite proxies `/api` requests to it during development.
-Check `http://127.0.0.1:3001/api/health` for the health response.
+To polecenie sprawdza formatowanie, lint, testy frontendu i backendu oraz wykonuje build z kontrolą typów.
 
-A fresh checkout needs a local `.env`: copy `.env.example` to `.env` without overwriting an existing file.
-Leave `PSN_NPSSO` blank until the authentication step. Never share its value, prefix it with `VITE_`, or put it in frontend code.
-`server/config.mjs` loads the project-root `.env` with Node's built-in loader. Restart the backend after changing `.env`.
-The `.env` file is ignored by Git; only the empty example belongs in the repository.
+Testy obejmują m.in. filtry i wyszukiwanie trofeów, ukrywanie spoilerów, ponawianie pobierania, edycję i zapis planów, przełączanie profili oraz reset demo. Po stronie backendu sprawdzają autoryzację, cache, stronicowanie i obsługę błędów. Korzystają ze sztucznych danych i nie wymagają konta PSN.
 
-Missing or blank configuration keeps the health endpoint working and prints a clear message.
-A configured value means only that a value exists, not that it is valid or that PSN is connected.
-Authentication, token refresh and game-library fetching are implemented below. Individual trophy fetching is a later step.
+Osobno można uruchomić `npm run test:frontend`, `npm run test:server` lub `npm run test:watch`. Testy w jsdom sprawdzają zachowanie komponentów; wygląd i działanie na urządzeniach wymagają również sprawdzenia w przeglądarce.
 
-## PSN authentication and library (steps 4.3–4.4)
+## Publikacja i obecne ograniczenia
 
-This is a local, single-account integration using an unofficial PSN client. Do not publish these personal-data endpoints without application authentication and a review of provider terms.
+Push na `main` uruchamia kontrole i publikację frontendu na GitHub Pages. Wersja publikowana używa adresów z `#`, żeby odświeżenie podstrony działało na statycznym hostingu.
 
-1. Sign in to your account on the official PlayStation website in your browser.
-2. In that same browser open `https://ca.account.sony.com/api/v1/ssocookie` as described in the psn-api manual authentication documentation.
-3. Copy the NPSSO value directly into local `.env` as `PSN_NPSSO=your_value`. Do not send it through chat, commit it, or include it in screenshots.
-4. Restart the backend using `npm.cmd run dev:server`.
-5. Open `/api/psn/games` through Vite to trigger authentication and fetch your trophy-linked titles.
+- Publiczna strona działa wyłącznie na danych demo. Integracja PSN jest lokalna, dla jednego skonfigurowanego konta.
+- Biblioteka PSN obejmuje tytuły powiązane z trofeami, a nie pełną listę zakupów.
+- Postęp pobrany z PSN może uwzględniać DLC — nie oznacza dokładnego postępu do samej platyny.
+- Plany i wskazówki są zapisane w danej przeglądarce. Nie synchronizują się między urządzeniami; wyczyszczenie danych przeglądarki usuwa zapisy.
+- Odznaczenie kroku w Plannerze nie zmienia statusu trofeum w PSN.
+- Projekt nie jest powiązany z Sony ani PSNProfiles. Nazwy gier i materiały graficzne widoczne na screenshotach należą do ich właścicieli.
 
-Endpoints:
+## Czego uczę się przy tym projekcie
 
-- `/api/psn/status`: configuration and authentication state only. Reading this endpoint does not log in.
-- `/api/psn/games`: performs lazy authentication and retrieves all library pages, with a safety limit of 100 pages. This is a trophy-linked library, not a list of all purchased games.
-- `/api/health`: backend health only; success does not mean PSN is connected.
+Łączę naukę Reacta i TypeScriptu z budowaniem aplikacji, której sam chciałbym używać. Pracuję nad stanem komponentów, przetwarzaniem danych, komunikacją z API, routingiem, dostępnością i testami.
 
-Tokens stay in backend memory. Access tokens are refreshed ahead of expiry; expired refresh tokens trigger a new NPSSO exchange. Failed authentication is sanitized and has a 30-second retry cooldown. Restarting clears tokens and the 60-second games cache. NPSSO may eventually need manual replacement.
-Provider requests have bounded waits, but the wrapper cannot cancel the underlying psn-api request. No credentials or raw provider errors are returned by our routes.
+Korzystam z AI jako wsparcia w implementacji, debugowaniu i nauce. Projekt rozwijam etapami: sprawdzam działanie zmian i wracam do kodu, żeby rozumieć jego logikę oraz decyzje techniczne.
 
-Games include the trophy set ID, service name, title, platform, optional icon, PSN-reported progress, trophy counts and last update. Missing counts remain null. The response includes source and fetch time.
-
-Run `npm.cmd run test:server` for offline tests with synthetic data. These verify auth lifecycle, concurrent requests, pagination, cache and error handling; a successful real PSN request must still be verified locally after credentials are configured. Trophy details and UI rendering of the library are later steps.
-
-## Frontend tests
-
-Run `npm.cmd run test:frontend` for one run, or `npm.cmd run test:watch` while editing.
-`npm.cmd run check` includes both frontend and backend tests.
-
-Vitest runs React components in jsdom. Testing Library and user-event find controls by their accessible labels and simulate typing, clicks and keyboard input. These tests cover trophy search and filters, spoiler protection, request retries, Planner editing and persistence, and Pro tips integration.
-
-Tests use fictional fixtures, replace fetch, and reset isolated jsdom storage between cases. They do not need a running server, PSN credentials or your browser data. Remounting components checks that persisted data can be restored. Storage failures are simulated to verify retry behavior.
-
-A test follows Arrange–Act–Assert: render the component with known data, perform an action, then check the result with `expect`. jsdom does not check visual layout or replace testing in a real browser.
-
-## Demo profile
-
-A fresh browser starts in Demo mode. Run only `npm.cmd run dev` to try it; no backend, PSN account or environment variables are needed. Four fictional games, 28 illustrative trophies, local SVG artwork, an active hunt, Planner steps and tips are included. These are sample statistics, not actual PSN records.
-
-Use the Data source selector on localhost to switch to your configured local PSN backend. Outside localhost, the interface stays in demo mode. The public demo should deploy only the frontend build, not the personal PSN backend.
-
-Demo plans, tips and active hunt use a separate `platinumos.demo.*` storage namespace. Reset demo asks for confirmation and clears only that namespace, restoring the initial sample profile. Existing PSN plans retain their original keys. Switching sources remounts the workspace so filters and requests cannot leak between profiles. Unsaved form drafts are discarded when switching.
-
-The shared data adapter lives in `src/data/api.ts`; demo content lives in `src/data/demo.ts`. The same screens and Planner logic serve both sources. Demo does not call `/api` endpoints or use external images.
-
-## Public demo
-
-[Open PlatinumOS](https://pinkcodesdev.github.io/PlatinumOS/)
-
-The public site runs entirely in the browser with fictional demo data. PSN access is available only when running locally. Planner changes are saved in the visitor's browser.
-
-Every push to `main` runs the quality checks and publishes `dist` through `.github/workflows/pages.yml`. GitHub Pages must use **GitHub Actions** as its source. Production uses hash routing so refreshing game details works on static hosting. Vite's base path is `/PlatinumOS/`; local development keeps `/`.
+Następne kierunki rozwoju to dopracowanie scenariuszy użytkownika i testów end-to-end, a w dalszej kolejności konta użytkowników i synchronizacja planów. Baza danych oraz publiczna obsługa wielu kont PSN nie są jeszcze zaimplementowane.
