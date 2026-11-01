@@ -190,7 +190,14 @@ function App() {
     <div
       className={`dashboard${location.pathname === '/' ? ' dashboard-home' : ''}`}
     >
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById('main-content')?.focus()
+        }}
+      >
         Skip to content
       </a>
       <aside className="sidebar">

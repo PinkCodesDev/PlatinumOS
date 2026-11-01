@@ -30,7 +30,7 @@ export default function LibraryPage({
   const filteredGames = games.filter((game) => {
     const matchesSearch = game.title
       .toLowerCase()
-      .includes(searchQuery.toLowerCase())
+      .includes(searchQuery.trim().toLowerCase())
 
     const matchesProgress =
       progressFilter === 'all' ||
