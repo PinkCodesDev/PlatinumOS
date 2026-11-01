@@ -1,11 +1,18 @@
+import { useDataSource, storageKey } from '../data/source'
+import { demoTips } from '../data/demo'
 import { useRef, useState } from 'react'
 import type { Game } from '../types'
 import type { PlatinumPlan } from '../hooks/usePlatinumPlan'
 
 type Tip = { id: string; text: string }
-function readTips(key: string): { tips: Tip[]; error: string } {
+function readTips(
+  key: string,
+  fallback: Tip[],
+): { tips: Tip[]; error: string } {
   try {
-    const data: unknown = JSON.parse(localStorage.getItem(key) ?? '[]')
+    const data: unknown = JSON.parse(
+      localStorage.getItem(key) ?? JSON.stringify(fallback),
+    )
     if (
       !Array.isArray(data) ||
       !data.every(
@@ -36,8 +43,11 @@ export default function ProTips({
   plan: PlatinumPlan
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const key = `platinumos.tips.v1:${game.serviceName}:${game.id}`
-  const [initial] = useState(() => readTips(key))
+  const source = useDataSource()
+  const key = storageKey(source, `tips.v1:${game.serviceName}:${game.id}`)
+  const [initial] = useState(() =>
+    readTips(key, source === 'demo' && game.id === 'DEMO_1' ? demoTips : []),
+  )
   const [tips, setTips] = useState(initial.tips)
   const [error, setError] = useState(initial.error)
   const [text, setText] = useState('')

@@ -1766,3 +1766,41 @@ h2 {
     opacity: 1;
   }
 }
+
+.source-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: #10213a;
+  border-bottom: 1px solid var(--color-border);
+}
+.source-controls > div:first-child {
+  flex: 1 1 280px;
+}
+.source-controls p {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.source-controls .library-field {
+  min-width: 150px;
+}
+.source-controls > [role='status'],
+.reset-confirm {
+  flex-basis: 100%;
+}
+.reset-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .source-controls {
+    padding: 12px 16px;
+  }
+  .source-controls .library-field {
+    flex: 1;
+  }
+}

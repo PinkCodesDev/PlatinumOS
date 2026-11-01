@@ -1,3 +1,7 @@
+import { DataSourceContext, storageKey, useDataSource } from './data/source'
+import type { DataSource } from './data/source'
+import { requestData } from './data/api'
+import { useNavigate } from 'react-router-dom'
 import SidebarHunt from './components/SidebarHunt'
 import { useEffect, useRef, useState } from 'react'
 
@@ -23,13 +27,13 @@ import DashboardPage from './pages/DashboardPage'
 import LibraryPage from './pages/LibraryPage'
 import GameDetailsPage from './pages/GameDetailsPage'
 
-const ACTIVE_HUNT_KEY = 'platinumos.activeHunt.v1'
 type ActiveHunt = Pick<Game, 'id' | 'serviceName'>
 
-function readActiveHunt(): ActiveHunt | null {
+function readActiveHunt(key: string, source: DataSource): ActiveHunt | null {
   try {
     const saved: unknown = JSON.parse(
-      localStorage.getItem(ACTIVE_HUNT_KEY) ?? 'null',
+      localStorage.getItem(key) ??
+        (source === 'demo' ? '{"id":"DEMO_1","serviceName":"trophy"}' : 'null'),
     )
     if (
       typeof saved === 'object' &&
@@ -48,7 +52,9 @@ function readActiveHunt(): ActiveHunt | null {
   return null
 }
 
-function App() {
+function AppContent() {
+  const source = useDataSource()
+  const ACTIVE_HUNT_KEY = storageKey(source, 'activeHunt.v1')
   const [games, setGames] = useState<Game[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -62,15 +68,11 @@ function App() {
 
     async function loadGames() {
       try {
-        const response = await fetch('/api/psn/games', {
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`)
-        }
-
-        const data: GamesResponse = await response.json()
+        const data = await requestData<GamesResponse>(
+          source,
+          '/api/psn/games',
+          controller.signal,
+        )
 
         if (!Array.isArray(data.games)) {
           throw new Error('Invalid game list')
@@ -82,7 +84,7 @@ function App() {
         setGamesStatus(
           data.games.length === 0
             ? 'No games found.'
-            : `${data.games.length} games loaded from PSN`,
+            : `${data.games.length} games loaded from ${source === 'demo' ? 'demo profile' : 'PSN'}`,
         )
       } catch {
         if (!controller.signal.aborted) {
@@ -95,7 +97,7 @@ function App() {
     void loadGames()
 
     return () => controller.abort()
-  }, [])
+  }, [source])
 
   const [serverStatus, setServerStatus] = useState('Checking server…')
 
@@ -103,6 +105,10 @@ function App() {
     const controller = new AbortController()
 
     async function checkServer() {
+      if (source === 'demo') {
+        setServerStatus('Demo profile · sample data')
+        return
+      }
       try {
         const response = await fetch('/api/health', {
           signal: controller.signal,
@@ -134,10 +140,10 @@ function App() {
     void checkServer()
 
     return () => controller.abort()
-  }, [])
+  }, [source])
 
-  const [activeHunt, setActiveHunt] = useState<ActiveHunt | null>(
-    readActiveHunt,
+  const [activeHunt, setActiveHunt] = useState<ActiveHunt | null>(() =>
+    readActiveHunt(ACTIVE_HUNT_KEY, source),
   )
   const [huntMessage, setHuntMessage] = useState('')
   const activeGame = games.find(
@@ -153,7 +159,7 @@ function App() {
     try {
       if (nextHunt)
         localStorage.setItem(ACTIVE_HUNT_KEY, JSON.stringify(nextHunt))
-      else localStorage.removeItem(ACTIVE_HUNT_KEY)
+      else localStorage.setItem(ACTIVE_HUNT_KEY, 'null')
       setHuntMessage(
         game ? 'Active hunt saved on this browser.' : 'Active hunt cleared.',
       )
@@ -204,7 +210,7 @@ function App() {
         <Link className="brand" to="/" aria-label="PlatinumOS — Dashboard">
           <img
             className="brand-mark"
-            src="/platinumos-logo.png"
+            src={`${import.meta.env.BASE_URL}platinumos-logo.png`}
             alt=""
             width={80}
             height={80}
@@ -332,6 +338,115 @@ function App() {
         </Routes>
       </main>
     </div>
+  )
+}
+function App() {
+  const allowPsn = ['localhost', '127.0.0.1', '[::1]'].includes(
+    window.location.hostname,
+  )
+  const [source, setSource] = useState<DataSource>(() => {
+    try {
+      return allowPsn && localStorage.getItem('platinumos.source.v1') === 'psn'
+        ? 'psn'
+        : 'demo'
+    } catch {
+      return 'demo'
+    }
+  })
+  const [revision, setRevision] = useState(0)
+  const [notice, setNotice] = useState('')
+  const [confirmReset, setConfirmReset] = useState(false)
+  const navigate = useNavigate()
+  function changeSource(next: DataSource) {
+    try {
+      localStorage.setItem('platinumos.source.v1', next)
+      setNotice('')
+    } catch {
+      setNotice(
+        'Source changed for this session only. Browser storage is unavailable.',
+      )
+    }
+    setConfirmReset(false)
+    setSource(next)
+    void navigate('/')
+  }
+  function resetDemo() {
+    try {
+      const keys = Object.keys(localStorage).filter((key) =>
+        key.startsWith('platinumos.demo.'),
+      )
+      keys.forEach((key) => localStorage.removeItem(key))
+      setRevision((value) => value + 1)
+      setConfirmReset(false)
+      setNotice('Demo reset to its starting profile.')
+      void navigate('/')
+    } catch {
+      setNotice(
+        'Could not reset demo storage. Try again when browser storage is available.',
+      )
+    }
+  }
+  return (
+    <DataSourceContext.Provider value={source}>
+      <section className="source-controls" aria-label="Profile controls">
+        <div>
+          <strong>
+            {source === 'demo' ? 'Demo profile' : 'Local PSN profile'}
+          </strong>
+          <p>
+            {source === 'demo'
+              ? 'Fictional games and sample statistics. Your changes stay in this browser.'
+              : 'Your configured local PSN connection. Plans are separate from demo.'}
+          </p>
+        </div>
+        <div className="library-field">
+          <label htmlFor="data-source">Data source</label>
+          <select
+            id="data-source"
+            value={source}
+            onChange={(event) =>
+              changeSource(event.target.value === 'psn' ? 'psn' : 'demo')
+            }
+          >
+            <option value="demo">Demo</option>
+            {allowPsn && <option value="psn">Local PSN</option>}
+          </select>
+        </div>
+        {source === 'demo' && (
+          <button
+            type="button"
+            className="primary-button secondary-button"
+            onClick={() => setConfirmReset(true)}
+          >
+            Reset demo
+          </button>
+        )}
+        {confirmReset && (
+          <div className="reset-confirm">
+            <p>
+              Reset demo plans, tips and active hunt? Your PSN plans will stay
+              unchanged.
+            </p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={resetDemo}
+            >
+              Confirm reset
+            </button>
+            <button
+              type="button"
+              className="primary-button secondary-button"
+              onClick={() => setConfirmReset(false)}
+            >
+              Cancel reset
+            </button>
+          </div>
+        )}
+        <p role="status">{notice}</p>
+      </section>
+      <AppContent key={source + revision} />
+    </DataSourceContext.Provider>
   )
 }
 export default App

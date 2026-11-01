@@ -123,3 +123,21 @@ Vitest runs React components in jsdom. Testing Library and user-event find contr
 Tests use fictional fixtures, replace fetch, and reset isolated jsdom storage between cases. They do not need a running server, PSN credentials or your browser data. Remounting components checks that persisted data can be restored. Storage failures are simulated to verify retry behavior.
 
 A test follows Arrange–Act–Assert: render the component with known data, perform an action, then check the result with `expect`. jsdom does not check visual layout or replace testing in a real browser.
+
+## Demo profile
+
+A fresh browser starts in Demo mode. Run only `npm.cmd run dev` to try it; no backend, PSN account or environment variables are needed. Four fictional games, 28 illustrative trophies, local SVG artwork, an active hunt, Planner steps and tips are included. These are sample statistics, not actual PSN records.
+
+Use the Data source selector on localhost to switch to your configured local PSN backend. Outside localhost, the interface stays in demo mode. The public demo should deploy only the frontend build, not the personal PSN backend.
+
+Demo plans, tips and active hunt use a separate `platinumos.demo.*` storage namespace. Reset demo asks for confirmation and clears only that namespace, restoring the initial sample profile. Existing PSN plans retain their original keys. Switching sources remounts the workspace so filters and requests cannot leak between profiles. Unsaved form drafts are discarded when switching.
+
+The shared data adapter lives in `src/data/api.ts`; demo content lives in `src/data/demo.ts`. The same screens and Planner logic serve both sources. Demo does not call `/api` endpoints or use external images.
+
+## Public demo
+
+[Open PlatinumOS](https://pinkcodesdev.github.io/PlatinumOS/)
+
+The public site runs entirely in the browser with fictional demo data. PSN access is available only when running locally. Planner changes are saved in the visitor's browser.
+
+Every push to `main` runs the quality checks and publishes `dist` through `.github/workflows/pages.yml`. GitHub Pages must use **GitHub Actions** as its source. Production uses hash routing so refreshing game details works on static hosting. Vite's base path is `/PlatinumOS/`; local development keeps `/`.

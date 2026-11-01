@@ -1,7 +1,31 @@
+import { useDataSource } from '../data/source'
 import type { Game } from '../types'
 import { getTrophyGuide } from '../data/trophyGuides'
 
 export default function TrophyGuide({ game }: { game: Game }) {
+  const source = useDataSource()
+  if (source === 'demo')
+    return (
+      <section className="game-guide" aria-labelledby="guide-title">
+        <h2 id="guide-title">Demo hunting guide</h2>
+        <p>
+          This is a fictional game with illustrative trophies and rarity values,
+          not an official PSN guide.
+        </p>
+        <ol>
+          <li>Complete the opening chapter and discover viewpoints.</li>
+          <li>
+            Collect skill fragments while playing co-op to avoid repeating
+            missions.
+          </li>
+          <li>
+            Finish the remaining base-game trophies, then tackle the Island
+            expansion.
+          </li>
+        </ol>
+        <p>Try adding your own reminder below and sending it to the Planner.</p>
+      </section>
+    )
   const guide = getTrophyGuide(game)
   const searchUrl =
     'https://www.google.com/search?q=' +

@@ -5,6 +5,7 @@ import { expect, test, vi } from 'vitest'
 import App from './App'
 import { game, trophies } from './test/fixtures'
 function setupApi(games = [game], fail = false) {
+  localStorage.setItem('platinumos.source.v1', 'psn')
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   vi.stubGlobal(
     'fetch',

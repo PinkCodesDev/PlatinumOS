@@ -1,3 +1,5 @@
+import { useDataSource, storageKey as sourceKey } from '../data/source'
+import { demoSteps } from '../data/demo'
 import { useRef, useState } from 'react'
 import type { Game, Trophy } from '../types'
 export type PlanStep = {
@@ -9,10 +11,10 @@ export type PlanStep = {
 }
 type SavedPlan = { steps: PlanStep[]; warning: string }
 
-function readPlan(key: string): SavedPlan {
+function readPlan(key: string, fallback: PlanStep[]): SavedPlan {
   try {
     const raw = localStorage.getItem(key)
-    if (raw === null) return { steps: [], warning: '' }
+    if (raw === null) return { steps: structuredClone(fallback), warning: '' }
     const data: unknown = JSON.parse(raw)
     if (
       !Array.isArray(data) ||
@@ -54,8 +56,17 @@ function readPlan(key: string): SavedPlan {
 }
 
 export function usePlatinumPlan(game: Game) {
-  const storageKey = `platinumos.planner.v1:${game.serviceName}:${game.id}`
-  const [initialPlan] = useState(() => readPlan(storageKey))
+  const source = useDataSource()
+  const storageKey = sourceKey(
+    source,
+    `planner.v1:${game.serviceName}:${game.id}`,
+  )
+  const [initialPlan] = useState(() =>
+    readPlan(
+      storageKey,
+      source === 'demo' && game.id === 'DEMO_1' ? demoSteps : [],
+    ),
+  )
   const [steps, setSteps] = useState<PlanStep[]>(initialPlan.steps)
   const [message, setMessage] = useState('')
   const [storageError, setStorageError] = useState(initialPlan.warning)

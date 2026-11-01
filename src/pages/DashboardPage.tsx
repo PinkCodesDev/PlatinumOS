@@ -1,3 +1,4 @@
+import { useDataSource } from '../data/source'
 import RecentlyPlayed from '../components/RecentlyPlayed'
 import NextSteps from '../components/NextSteps'
 import { useState } from 'react'
@@ -20,6 +21,7 @@ export default function DashboardPage({
   huntMessage,
   updateActiveHunt,
 }: Props) {
+  const source = useDataSource()
   const [failedCover, setFailedCover] = useState<string | null>(null)
   const hasCompleteTrophyData =
     gamesLoadState === 'success' &&
@@ -153,7 +155,11 @@ export default function DashboardPage({
                     aria-label={`Trophy progress for ${activeGame.title}`}
                   />
                 )}
-                <p className="details-note">PSN progress · Includes DLC</p>
+                <p className="details-note">
+                  {source === 'demo'
+                    ? 'Sample progress · Includes DLC'
+                    : 'PSN progress · Includes DLC'}
+                </p>
                 <ul
                   className="hunt-counts"
                   aria-label="Earned trophies by type"

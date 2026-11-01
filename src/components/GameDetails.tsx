@@ -1,3 +1,5 @@
+import { requestData } from '../data/api'
+import { useDataSource } from '../data/source'
 import { useEffect, useState } from 'react'
 import type { Game, Trophy, TrophiesResponse } from '../types'
 
@@ -41,6 +43,7 @@ export default function GameDetails({
   onAddToPlan,
   plannedTrophyIds,
 }: Props) {
+  const source = useDataSource()
   const [result, setResult] = useState<LoadState>({ status: 'loading' })
   const [revealedIds, setRevealedIds] = useState<string[]>([])
   function isConcealed(trophy: Trophy) {
@@ -63,11 +66,11 @@ export default function GameDetails({
           gameId: game.id,
           serviceName: game.serviceName,
         })
-        const response = await fetch(`/api/psn/trophies?${query}`, {
-          signal: controller.signal,
-        })
-        if (!response.ok) throw new Error('Could not load trophies')
-        const data: TrophiesResponse = await response.json()
+        const data = await requestData<TrophiesResponse>(
+          source,
+          `/api/psn/trophies?${query}`,
+          controller.signal,
+        )
         if (
           !Array.isArray(data.trophies) ||
           data.gameId !== game.id ||
@@ -82,7 +85,7 @@ export default function GameDetails({
     }
     void load()
     return () => controller.abort()
-  }, [game.id, game.serviceName, attempt])
+  }, [game.id, game.serviceName, attempt, source])
 
   const trophies = result.status === 'success' ? result.trophies : []
   const groupIds = [...new Set(trophies.map((trophy) => trophy.groupId))].sort(
@@ -129,9 +132,7 @@ export default function GameDetails({
         Hidden, unearned trophies are concealed until you reveal them. Search
         only checks revealed details. Other descriptions may contain spoilers.
       </p>
-      {result.status === 'loading' && (
-        <p role="status">Loading trophies from PSN…</p>
-      )}
+      {result.status === 'loading' && <p role="status">Loading trophies…</p>}
       {result.status === 'error' && (
         <div>
           <p role="alert">

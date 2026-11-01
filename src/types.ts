@@ -31,13 +31,13 @@ export type Game = {
 }
 
 export type GamesResponse = {
-  source: 'PSN'
+  source: 'PSN' | 'DEMO'
   fetchedAt: string
   games: Game[]
 }
 
 export type TrophiesResponse = {
-  source: 'PSN'
+  source: 'PSN' | 'DEMO'
   fetchedAt: string
   gameId: string
   serviceName: Game['serviceName']

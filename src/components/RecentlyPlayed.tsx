@@ -1,3 +1,5 @@
+import { requestData } from '../data/api'
+import { useDataSource } from '../data/source'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Game } from '../types'
@@ -54,6 +56,7 @@ function RecentCard({ game, library }: { game: RecentGame; library: Game[] }) {
   )
 }
 export default function RecentlyPlayed({ games }: { games: Game[] }) {
+  const source = useDataSource()
   const [result, setResult] = useState<{
     status: 'loading' | 'error' | 'success'
     games: RecentGame[]
@@ -63,11 +66,11 @@ export default function RecentlyPlayed({ games }: { games: Game[] }) {
     const controller = new AbortController()
     async function load() {
       try {
-        const response = await fetch('/api/psn/recent', {
-          signal: controller.signal,
-        })
-        if (!response.ok) throw new Error('Failed')
-        const data = await response.json()
+        const data = await requestData<{ games: RecentGame[] }>(
+          source,
+          '/api/psn/recent',
+          controller.signal,
+        )
         if (!Array.isArray(data.games)) throw new Error('Invalid')
         if (!controller.signal.aborted)
           setResult({ status: 'success', games: data.games })
@@ -78,13 +81,17 @@ export default function RecentlyPlayed({ games }: { games: Game[] }) {
     }
     void load()
     return () => controller.abort()
-  }, [attempt])
+  }, [attempt, source])
   return (
     <section className="recently-played" aria-labelledby="recent-title">
       <div className="recent-heading">
         <div>
           <h2 id="recent-title">Recently played</h2>
-          <p className="details-note">Your latest gaming activity on PSN.</p>
+          <p className="details-note">
+            {source === 'demo'
+              ? 'Sample gaming activity from the demo profile.'
+              : 'Your latest gaming activity on PSN.'}
+          </p>
         </div>
         <Link to="/games">View library →</Link>
       </div>
